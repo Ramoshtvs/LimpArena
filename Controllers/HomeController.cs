@@ -156,8 +156,9 @@ namespace LimpArena.Controllers
             DateTime fecha = Convert.ToDateTime(rd.Fecha);
             var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
             var peso = db.Pesaje.Where(x => x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaf).ToList();
+
             VariablesContador.contadorPesaje = peso.Count;
-            listFecha.Add("");
+            
             foreach (var item in peso)
             {
                 listPeso.Add(Convert.ToDecimal(item.Peso));
@@ -216,7 +217,7 @@ namespace LimpArena.Controllers
             return Json(objvariables, JsonRequestBehavior.AllowGet);
 
 
-        }
+        }    
        
         [HttpPost]
         public ActionResult almacenamiento(Almacenamiento_Inicial rd)
@@ -416,18 +417,50 @@ namespace LimpArena.Controllers
             List<String> lstFechaITG = new List<String>();
             List<decimal> lstITM = new List<decimal>();
 
-            var data = db.InspeccionTamañoGrano.Where(x => x.Fecha.Value.Day >= rd.Fecha.Value.Day &&
-            x.Fecha.Value.Day <= rd.Fecha.Value.Day).ToList();
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaTG = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            var dataTG = db.InspeccionTamañoGrano.Where(x => 
+            
+            x.Fecha.Value >= rd.Fecha &&  x.Fecha.Value <= fechaTG).ToList();
 
-            foreach (var item in data)
+            VariablesContador.contadorInspTGrano = dataTG.Count;
+
+            foreach (var item in dataTG)
             {
-                lstFechaITG.Add(Convert.ToString(item.Fecha.Value.ToShortDateString()));
+                lstFechaITG.Add(Convert.ToString(item.Fecha.Value.ToLongTimeString()));
                 lstITM.Add(Convert.ToDecimal(item.TamanoGrano));
             }
 
             objvariables.lstFechaTG = lstFechaITG;
             objvariables.lstTamanoTG = lstITM;
 
+            return Json(objvariables, JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost]
+        public ActionResult validarBarras(InspeccionTamañoGrano rd)
+        {
+            variables objvariables = new variables();
+
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaTG = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            var dataTG = db.InspeccionTamañoGrano.Where(x =>
+
+            x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaTG).ToList();
+
+            int cont = dataTG.Count;
+
+            if (cont > VariablesContador.contadorInspTGrano)
+            {
+                VariablesContador.contadorInspTGrano = cont;
+                var validarPunto = db.InspeccionTamañoGrano.OrderByDescending(x => x.Id).FirstOrDefault();
+
+                foreach (var item in dataTG)
+                {
+                    objvariables.varpointaddTG = Convert.ToDecimal(item.TamanoGrano);
+                    objvariables.varpointaddFechaTG= Convert.ToString(item.Fecha.Value.ToLongTimeString());
+                }
+
+            }
             return Json(objvariables, JsonRequestBehavior.AllowGet);
         }
         public ActionResult InspeccionTamañoGrano()
@@ -760,6 +793,8 @@ namespace LimpArena.Controllers
 
             public List<decimal> lstTamanoTG { get; set; }
             public List<String> lstFechaTG { get; set; }
+            public decimal varpointaddTG{ get; set; }
+            public string varpointaddFechaTG { get; set; }
 
             ///8 page
             public List<String> lstFechaQR { get; set; }

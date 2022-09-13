@@ -3,195 +3,161 @@
 }
 
 
-
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/modules/export-data.js"></script>
-<script src="https://code.highcharts.com/modules/accessibility.js"></script>
-
-<figure class="highcharts-figure">
-    <div id="container"></div>
-    <p class="highcharts-description">
-        Chart showing data updating every second, with old data being removed.
-    </p>
-</figure>
+<script src="~/Scripts/Highcharts/highcharts.js"></script>
+<script src="~/Scripts/Highcharts/data.js"></script>
+<script src="~/Scripts/Highcharts/drilldown.js"></script>
+<script src="~/Scripts/Highcharts/exporting.js"></script>
+<script src="~/Scripts/Highcharts/export-data.js"></script>
+<script src="~/Scripts/Highcharts/accessibility.js"></script>
+<script src="https://code.highcharts.com/modules/variwide.js"></script>
 
 
-
-
-<style>
-    .highcharts-figure,
-    .highcharts-data-table table {
-        min-width: 320px;
-        max-width: 800px;
-        margin: 1em auto;
-    }
-
-    #container {
-        height: 400px;
-    }
-
-    .highcharts-data-table table {
-        font-family: Verdana, sans-serif;
-        border-collapse: collapse;
-        border: 1px solid #ebebeb;
-        margin: 10px auto;
-        text-align: center;
-        width: 100%;
-        max-width: 500px;
-    }
-
-    .highcharts-data-table caption {
-        padding: 1em 0;
-        font-size: 1.2em;
-        color: #555;
-    }
-
-    .highcharts-data-table th {
-        font-weight: 600;
-        padding: 0.5em;
-    }
-
-    .highcharts-data-table td,
-    .highcharts-data-table th,
-    .highcharts-data-table caption {
-        padding: 0.5em;
-    }
-
-    .highcharts-data-table thead tr,
-    .highcharts-data-table tr:nth-child(even) {
-        background: #f8f8f8;
-    }
-
-    .highcharts-data-table tr:hover {
-        background: #f1f7ff;
-    }
-</style>
+<div class="row">
+    <div class="col-lg-8" style="text-align:end">
+        <h2>Inspección Tamaño Del Grano</h2>
+    </div>
+    <div class="col-lg-3" style="text-align: end; padding-top:17px">
+        <input id="fecha" type="date" onchange="chart()" style="font-size: 16px;  width:200px; height:40px; text-transform: uppercase; font-weight:bold;" />
+    </div>
+</div>
+<div class="row responsive" style="padding-top:10px">
+    <div class="col-lg-12">
+        <figure class="highcharts-figure">
+            <div id="GrafBarras" style="height:100%;"></div>
+        </figure>
+    </div>
+</div>
 
 
 <script>
-    window.onload = chart;
-     function chart() {
+   
+    window.onload = time;
+    function time() {
+        var now = new Date();
+        var day = ("0" + (now.getDate())).slice(-2);
+        var mes = ("0" + (now.getMonth() + 1)).slice(-2);
+        var year = now.getFullYear();
+        $("#fecha").val(year + "-" + mes + "-" + day);
+        chart()
+    }
 
-            var rd = {};
-            rd.Fecha =0;
+    function chart() {
 
-            $.ajax({
+        var rd = {};
+        rd.Fecha = $("#fecha").val();
+
+           $.ajax({
                 type:"POST",
-                url: '@Url.Action("About")',
+                url: '@Url.Action("InspeccionTamañoGrano")',
                 data: '{rd: ' + JSON.stringify(rd) + '}',
                 dataType: "json",
                 contentType:"application/json; chartset=uft-8",
-                success: function (Response) {
+               success: function (Response) {
+                   if (Response != null) {
 
-                    if (Response != null) {
-
-
-
-                        Highcharts.chart('container', {
-                            chart: {
-                                type: 'spline',
-                                animation: Highcharts.svg, // don't animate in old IE
-                                marginRight: 10,
+                       Highcharts.chart('GrafBarras', {
+                           chart: {
+                               type: 'scatter',                               
                                 events: {
-                                    load: function () {
-                                        var series = this.series[0];
-                                        setInterval(
+                                        load: function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function barra() {
+                                                    var rd = {};
+                                                    rd.Fecha = $("#fecha").val();
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("validarBarras")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.varpointaddTG > 0) {
 
-                                             function punto() {
-                                                var rd = {};
-                                                rd.Fecha = 0;
-                                                $.ajax({
-                                                    type: "POST",
-                                                    url: '@Url.Action("ValidarPunto")',
-                                                    data: '{rd: ' + JSON.stringify(rd) + '}',
-                                                    dataType: "json",
-                                                    contentType: "application/json; chartset=uft-8",
-                                                    success: function (Response) {
-                                                        if (Response!= null) {
-                                                            if (Response.Varpeso > 0) {
+                                                                    var x = Responses.varpointaddFechaTG,
+                                                                        y = Responses.varpointaddTG;
 
+                                                                    series.addPoint([ x, y ]);
 
-                                                                var x = (new Date()).getTime(),
-                                                                    y = Response.Varpeso;
-                                                                series.addPoint([x,y], true, true);
-
+                                                                }
                                                             }
-                                                        }
-                                                    },
-                                                });
-                                            }, 5000);
-                                    }
-                                }
-                            },
-                            time: {
-                                useUTC: false
-                            },
-                            title: {
-                                text: 'Live random data'
-                            },
-                            //ValidarPunto
-                            accessibility: {
-                                announceNewData: {
-                                    enabled: true,
-                                    minAnnounceInterval: 15000,
-                                    announcementFormatter: function (allSeries, newSeries, newPoint) {
-                                        if (newPoint) {
-                                            return 'New point added. Value: ' + newPoint.y;
+                                                        },
+                                                    });
+                                                }, 10000);
                                         }
-                                        return false;
                                     }
-                                }
-                            },
-                            xAxis:{
-                                type: 'datetime',
-                                tickPixelInterval:150
-                        },
-                            yAxis: {
-                                title: {
-                                    text: 'Value'
-                                },
-                                plotLines: [{
-                                    value: 0,
-                                    width: 1,
-                                    color: '#808080'
-                                }]
-                            },
-                            tooltip: {
-                                headerFormat: '<b>{series.name}</b><br/>'
+                           },
+                           title: {
+                               text: 'Tamaño De Grano'
+                           },
+                           accessibility: {
+                               announceNewData: {
+                                   enabled: true                                  
+                               }
+                           },
+                           credits: {
+                               enabled: false
+                           },
+                           xAxis: {                               
+                               type: 'category',
+                               labels: {
+                                   rotation: 45,
+                                   style: { color: 'Black' }
+                               }
+                           },
+                           yAxis: {
+                               title: {
+                                   text: 'Tamaño Del Grano'
+                               }
 
-                            },
-                            legend: {
-                                enabled: false
-                            },
-                            exporting: {
-                                enabled: false
-                            },
-                            series: [{
-                                name: 'Random data',
-                                data: (function () {
-                                    var time = (new Date()).getTime();
-                                    var Data = [];
-                                    var datos = Response.indexPesaje;
+                           },
+                           legend: {
+                               enabled: false
+                           },
+                           plotOptions: {
+                               series: {
+                                   borderWidth: 10,
+                                   dataLabels: {
+                                       enabled: true,
+                                       format: '{point.y:.1f} AFS'
+                                   }
+                               }
+                           },
+
+                           series: [
+                               {
+                                   name: ' AFS',
+                                   colorByPoint: true,
+                                   data: (function () {
+
+                                       var data = [],                                         
+                                           dat = Response.lstTamanoTG,
+                                       fec = Response.lstFechaTG;                                       
+                                      
+                                       for (var i = 0; i < dat.length; i++) {
+                                           
+                                               data.push({
+                                                   name: fec[i],
+                                                   y: dat[i]
+                                               });                                         
+                                           
+                                       }
+                                       return data;
+                                   }())
+                                   
+                                       
+                               }
+                           ]
+                       });
 
 
-                                    for (var i = 0; i < datos.length; i++) {
-                                        Data.push({
-                                            x: time+i*1000,
-                                            y: datos[i]
-                                        });
-                                    }
+                   } else {
 
-                                    return Data;
-                                }())
-                            }]
-                        });
-                    } else {
-                        alert('NULO');
-                    }
-                },
-            });
-     }
+                       alert('NULO');
+                   }
+               },
+           });
+    }
 </script>
-
 
