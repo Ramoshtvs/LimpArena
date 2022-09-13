@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpieza Arena</title>
+    <link href="~/fontawesome-free-6.1.2-web/css/all.css" rel="stylesheet" />
+    <link href="~/Content/Nav.css" rel="stylesheet" />
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+
+
+    <script>
+        var count = 1
+        setTimeout(demo, 500)
+        setTimeout(demo, 700)
+        setTimeout(demo, 900)
+        setTimeout(reset, 2000)
+
+        setTimeout(demo, 2500)
+        setTimeout(demo, 2750)
+        setTimeout(demo, 3050)
+
+
+        var mousein = false
+        function demo() {
+            if (mousein) return
+            document.getElementById('demo' + count++)
+                .classList.toggle('hover')
+
+        }
+
+        function demo2() {
+            if (mousein) return
+            document.getElementById('demo2')
+                .classList.toggle('hover')
+        }
+
+        function reset() {
+            count = 1
+            var hovers = document.querySelectorAll('.hover')
+            for (var i = 0; i < hovers.length; i++) {
+                hovers[i].classList.remove('hover')
+            }
+        }
+
+        document.addEventListener('mouseover', function () {
+            mousein = true;
+            reset()
+        })
+
+    </script>
+
+</head>
+<body>
+    <nav style="background-color:#4593A9; text-align:center; height:38px">
+        <menu>
+            <menuitem id="demo1">
+                <a><i class="fa-solid fa-bars"></i></a>
+                <menu>
+                    <menuitem><a href="@Url.Action("Index","Home")"> <i class='fa fa-home'></i> HOME</a></menuitem>
+                    <menuitem>
+                        <a>PESAJE</a>
+                        <menu>
+
+                            <menuitem><a href="@Url.Action("pesaje","Home")">Pesaje Diario</a></menuitem>
+                            <menuitem><a href="@Url.Action("pesajeMensual","Home")">Pesaje Mensual</a></menuitem>
+
+                        </menu>
+                    </menuitem>
+                    <menuitem><a href="@Url.Action("almacenamiento","Home")">ALMACENAMIENTO</a></menuitem>
+                    <menuitem><a href="@Url.Action("triturado","Home")">TRITURADO</a></menuitem>
+                    <menuitem><a href="@Url.Action("Cribado","Home")">CRIBADO</a></menuitem>
+                    <menuitem><a href="@Url.Action("separacionMagneticos","Home")">SEPARACIÓN MANETICOS</a></menuitem>
+                    <menuitem><a href="@Url.Action("SentrifugadodeCargas","Home")">CENTRIFUGADO CARGAS</a></menuitem>
+                    <menuitem><a href="@Url.Action("InspeccionTamañoGrano","Home")">INSPECCIÓN TAMAÑO DE GRANO</a></menuitem>
+                    <menuitem><a href="@Url.Action("QuemadoResina","Home")">QUEMADO DE RESINA</a></menuitem>
+                    <menuitem><a href="@Url.Action("TanqueEnfriamento","Home")">TANQUE DE ENFRIAMIENTO</a></menuitem>
+                    <menuitem><a href="@Url.Action("CribadoProceso2","Home")">CRIBADO</a></menuitem>
+                    <menuitem><a href="@Url.Action("InstpeccionConductividad","Home")">INSPECCIÓN DE CONDUCTIVIDAD</a></menuitem>
+                    <menuitem>
+                        <a>PESAJE FINAL</a>
+                        <menu>
+
+                            <menuitem><a href="@Url.Action("PesajeFinalDiario","Home")">Pesaje Diario</a></menuitem>
+                            <menuitem><a href="@Url.Action("PesajeFinalMensual","Home")">Pesaje Mensual</a></menuitem>
+
+                        </menu>
+                    </menuitem>
+                    <menuitem><a href="@Url.Action("AlmacenamientoFinal","Home")">ALMACENAMIENTO FINAL</a></menuitem>
+
+                </menu>
+            </menuitem>
+
+        </menu>
+    </nav>
+
+
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - CITYS</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

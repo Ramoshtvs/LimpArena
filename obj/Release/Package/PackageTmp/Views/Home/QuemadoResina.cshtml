@@ -1,0 +1,135 @@
+﻿
+@{
+    ViewBag.Title = "QuemadoResina";
+}
+
+<script src="~/Scripts/Highcharts/highcharts.js"></script>
+<script src="~/Scripts/Highcharts/exporting.js"></script>
+<script src="~/Scripts/Highcharts/export-data.js"></script>
+<script src="~/Scripts/Highcharts/accessibility.js"></script>
+
+
+<link href="~/Content/GrafQuemadoResina.css" rel="stylesheet" />
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<link href="~/Content/Nav.css" rel="stylesheet" />
+
+
+<div class="container">
+    <div class="row responisve" style="padding: 10px">
+        <div class="col-md-4" style="background-color: lightseagreen; width: auto; height: auto; ">
+            <section>
+                <div>
+                    <h3 style="color:white"> Temperatura Interna:</h3>
+                    <h3 id="lblTempInterna" style="color:white"> </h3>
+                    <br />
+                    <h3 style="color:white"> Temperatura Externa:</h3>
+                    <h3 id="lblTempExterna" style="color:white"> </h3>
+                    <br />
+                    <h3 style="color:white"> Temperatura De La Arena:</h3>
+                    <h3 id="lblTempArena" style="color:white; "> </h3>
+                    <br />
+                    <h3 style="color:white">Aire Comprimido:</h3>
+                    <h3 id="lblAire" style="color:white; "> </h3>
+                    <br />
+                    <h3 style="color:white">Fecha Y Hora:</h3>
+                    <h3 id="lblFecha" style="color:white; "> </h3>
+                </div>
+            </section>
+        </div>
+        <div class="col-md-8">
+            <figure class="highcharts-figure">
+                <input id="fecha" type="date" onchange="chart()" style="font-size: 16px;  width:200px; height:40px; text-transform: uppercase; font-weight:bold;" />
+                <div id="GrafQuemadoR"></div>
+            </figure>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    setInterval("chart()", 10000);
+    window.onload = time;
+    function time() {
+        var now = new Date();
+        var day = ("0" + (now.getDate())).slice(-2);
+        var mes = ("0" + (now.getMonth() + 1)).slice(-2);
+        var year = now.getFullYear();
+        $("#fecha").val(year + "-" + mes + "-" + day);
+        chart()
+    }
+
+    function chart() {
+
+        var rd = {};
+        rd.Fecha = $("#fecha").val();
+
+           $.ajax({
+                type:"POST",
+                url: '@Url.Action("QuemadoResina")',
+                data: '{rd: ' + JSON.stringify(rd) + '}',
+                dataType: "json",
+                contentType:"application/json; chartset=uft-8",
+               success: function (Response) {
+                   $("#lblTempInterna").html(Response.VarTempInternaQR + " °C");
+                   $("#lblTempExterna").html(Response.VarTempExternaQR + " °C");
+                   $("#lblTempArena").html(Response.VarTempArenaQR + " °C");
+                   $("#lblAire").html(Response.VarCalibracionQR + " hp");
+                   $("#lblFecha").html(Response.VarFechaQR);
+
+                   if (Response != null) {
+
+                       Highcharts.chart('GrafQuemadoR', {
+                           chart: {
+                               type: 'line'
+                           },
+                           title: {
+                               text: 'Quemado De Resina'
+                           },
+                           credits: {
+                               enabled: false
+                           },
+                           xAxis: {
+                               categories: Response.lstFechaQR,
+                               labels: {
+                                   rotation: 45,
+                                   style: { color: 'Black' }
+                               }
+                           },
+                           yAxis: {
+                               title: {
+                                   text: 'Temperatura (°C)'
+                               }
+                           },
+                           plotOptions: {
+                               line: {
+                                   dataLabels: {
+                                       enabled: true
+                                   },
+                                   enableMouseTracking: false
+                               }
+                           }, series: [
+                               {
+                                   name: 'Temperatura Interna',
+                                   data: Response.lstTempInternaQR
+                               }, {
+                                   name: 'Temperatura Externa',
+                                   data: Response.lstTempExternaQR
+                               }, {
+                                   name: 'Temperatura Arena',
+                                   data: Response.lstTempArenaQR
+                               }
+                           ]
+
+                       });
+
+                   } else {
+                       alert('NULO');
+
+                   }
+               },
+           });
+    }
+</script>
+
+

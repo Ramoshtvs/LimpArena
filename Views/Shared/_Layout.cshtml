@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpieza Arena</title>
+
+    <link href="~/fontawesome-free-6.1.2-web/css/all.css" rel="stylesheet" />
+    <link href="~/Content/NavMenu.css" rel="stylesheet" />
+
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+
+</head>
+<body>
+    <div class="header"></div>
+    <input type="checkbox" class="openSidebarMenu" id="openSidebarMenu">
+    <label for="openSidebarMenu" class="sidebarIconToggle">
+        <div class="spinner diagonal part-1"></div>
+        <div class="spinner horizontal"></div>
+        <div class="spinner diagonal part-2"></div>
+    </label>
+    <div id="sidebarMenu">
+        <ul class="sidebarMenuInner">
+            <li>
+                <a href="@Url.Action("Index","Home")"> <i class='fa fa-home'></i> Home</a>
+            </li>
+            <li><a href="@Url.Action("pesaje","Home")">Pesaje</a></li>            
+            <li><a href="@Url.Action("almacenamiento","Home")">Almacenamiento</a></li>
+            <li><a href="@Url.Action("triturado","Home")">Triturado</a></li>
+            <li><a href="@Url.Action("Cribado","Home")">Cribado</a></li>
+            <li><a href="@Url.Action("separacionMagneticos","Home")">Separeción Magneticos</a></li>
+            <li><a href="@Url.Action("SentrifugadodeCargas","Home")">Centrifugado Cargas</a></li>
+            <li><a href="@Url.Action("InspeccionTamañoGrano","Home")">Inspección Tamaño De Grano</a></li>
+            <li><a href="@Url.Action("QuemadoResina","Home")">Quemado De Resina</a></li>
+            <li><a href="@Url.Action("TanqueEnfriamento","Home")">Tanque De Enfriamiento</a></li>
+            <li><a href="@Url.Action("CribadoProceso2","Home")">Cribado</a></li>
+            <li><a href="@Url.Action("InstpeccionConductividad","Home")">Inspección De Conductividad</a></li>
+            <li><a href="@Url.Action("PesajeFinalDiario","Home")">Pesaje</a></li>            
+            <li><a href="@Url.Action("AlmacenamientoFinal","Home")">ALMACENAMIENTO FINAL</a></li>
+
+
+        </ul>
+    </div>
+    <div id='center' class="main center">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - CITYS</p>
+        </footer>
+    </div>
+
+
+
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,115 @@
+﻿
+@{
+    ViewBag.Title = "pesajeMensual";
+}
+
+<script src="~/Scripts/Highcharts/highcharts.js"></script>
+<script src="~/Scripts/Highcharts/highcharts-3d.js"></script>
+<script src="~/Scripts/Highcharts/cylinder.js"></script>
+<script src="~/Scripts/Highcharts/exporting.js"></script>
+<script src="~/Scripts/Highcharts/export-data.js"></script>
+<script src="~/Scripts/Highcharts/accessibility.js"></script>
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<link href="~/Content/GrafPesajeMensual.css" rel="stylesheet" />
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<link href="~/Content/Nav.css" rel="stylesheet" />
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-6">
+            <label style="font-size: 35px; margin-left: 100px; font-family: 'Lucida Bright'; ">Pesaje Mensual</label>
+        </div>
+        <div class="col-lg-4" style="padding:10px">
+            <div style="display: inline-block">
+                @Html.DropDownList("lstYear", (IEnumerable<SelectListItem>) ViewBag.year, new { id = "Year", @class = "Form-control",
+               @onchange = "Chart()", @style = "font-size: 16px;  width:200px; height:40px; font-weight:bold; text-align-last: center"
+           })
+            </div>            
+        </div>
+        
+    </div>
+</div>
+
+<figure class="highcharts-figure">
+    <div id="GrafPesajMensual"></div>
+</figure>
+
+
+
+<script>
+    window.onload = chart;
+    
+     function chart() {
+
+            var rd = {};
+         rd.Fecha = "01/01/" + $("#Year").val();
+            $.ajax({
+                type:"POST",
+                url: '@Url.Action("pesajeMensual")',
+                data: '{rd: ' + JSON.stringify(rd) + '}',
+                dataType: "json",
+                contentType:"application/json; chartset=uft-8",
+                success: function (Response) {
+
+                    if (Response != null) {
+                        Highcharts.chart('GrafPesajMensual', {
+                            title: {
+                                text: ''
+                            },
+                            xAxis: {
+                                categories: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+                                labels: {
+
+                                    style: { color: 'Black' }
+                                }
+                            },
+                            yAxis: {
+                                title: {
+                                    text: 'Kilogramos',
+                                    style: {
+                                        color: 'black'
+                                    }
+                                },
+                                labels: {
+                                    style: {
+                                        color: 'black'
+                                    }
+                                }
+                            },
+                            chart: {
+                                type: 'cylinder',
+                                options3d: {
+                                    enabled: true,
+                                    alpha: 15,
+                                    beta: 15,
+                                    depth: 50,
+                                    viewDistance: 25
+                                }
+                            },
+                            plotOptions: {
+                                series: {
+                                    depth: 25,
+                                    colorByPoint: true
+                                }
+                            },
+
+                            credits: {
+                                enabled: false
+                            },
+                            series: [{
+                                data: Response.pesoMensual,
+                                name: 'Kilogramos',
+                                showInLegend: false
+                            }]
+                        });
+                    } else {
+                        alert('NULO');
+                    }
+                },
+            });
+        }
+
+
+</script>
+

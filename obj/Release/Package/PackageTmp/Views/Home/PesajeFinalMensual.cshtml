@@ -1,0 +1,109 @@
+﻿
+@{
+    ViewBag.Title = "PesajeFinalMensual";
+}
+
+<script src="~/Scripts/Highcharts/highcharts.js"></script>
+<script src="~/Scripts/Highcharts/highcharts-more.js"></script>
+<script src="~/Scripts/Highcharts/exporting.js"></script>
+<script src="~/Scripts/Highcharts/export-data.js"></script>
+<script src="~/Scripts/Highcharts/accessibility.js"></script>
+
+
+<link href="~/Content/GrafPesajeMF.css" rel="stylesheet" />
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<link href="~/Content/Nav.css" rel="stylesheet" />
+
+<div class="container">
+    <div class="row">
+
+        <div class="col-lg-11" style="padding:10px">
+            <div style=" text-align: center; ">
+                <label style="font-size: 35px; margin-left: 100px; font-family: 'Lucida Bright'; ">Pesaje Mensual</label>
+            </div>
+            <div style="display: inline-block">
+                @Html.DropDownList("lstYear", (IEnumerable<SelectListItem>)ViewBag.year, new
+                {
+               id = "Year",
+               @class = "Form-control",
+               @onchange = "Chart()",
+               @style = "font-size: 16px;  width:200px; height:40px; font-weight:bold; text-align-last: center"
+           })
+            </div>
+            <figure class="highcharts-figure">
+                <div id="GrafPesajeMF"></div>
+            </figure>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<script>
+    window.onload = chart;
+   
+    
+     function chart() {
+
+            var rd = {};
+         rd.Fecha = "01/01/" + $("#Year").val();
+
+            $.ajax({
+                type:"POST",
+                url: '@Url.Action("PesajeFinalMensual")',
+                data: '{rd: ' + JSON.stringify(rd) + '}',
+                dataType: "json",
+                contentType:"application/json; chartset=uft-8",
+                success: function (Response) {
+
+                    if (Response != null) {
+
+
+                        Highcharts.chart('GrafPesajeMF', {
+                            title: {
+                                text: ''
+                            },
+                            credits: {
+                                enabled: false
+                            },
+                            yAxis: {
+                                title: {
+                                    text: 'Kilogramos',
+                                    style: {
+                                        color: 'black'
+                                    }
+                                }
+                            },
+                            xAxis: {
+                                categories: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+
+                                labels: {
+
+                                    style: { color: 'Black' }
+                                }
+                            },
+                            series: [{
+                                type: 'column',
+                                name: 'KG',
+                                colorByPoint: true,
+                                data: Response.lstPesoMensualF,
+                                showInLegend: false
+                            }]
+                        });
+
+
+
+                    } else {
+                        alert('NULO');
+                    }
+                },
+            });
+        }
+
+
+</script>
+
+
+

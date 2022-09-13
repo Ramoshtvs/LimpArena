@@ -1,0 +1,288 @@
+﻿
+@{
+    ViewBag.Title = "almacenamiento";
+}
+
+<script src="~/Scripts/Highcharts/highcharts.js"></script>
+<script src="~/Scripts/Highcharts/highcharts-more.js"></script>
+<script src="~/Scripts/Highcharts/solid-gauge.js"></script>
+<script src="~/Scripts/Highcharts/exporting.js"></script>
+<script src="~/Scripts/Highcharts/export-data.js"></script>
+<script src="~/Scripts/Highcharts/accessibility.js"></script>
+
+<link href="~/Content/smartdefault.css" rel="stylesheet" />
+<script src="~/Scripts/smarttank.js"></script>
+<link href="~/Content/ProgressTemp.css" rel="stylesheet" />
+<link href="~/Content/progressBarr.css" rel="stylesheet" />
+<link href="~/fontawesome-free-6.1.2-web/css/all.css" rel="stylesheet" />
+<link href="~/Content/bootstrap5/bootstrap.min.css" rel="stylesheet" />
+
+
+<div style="padding-top:10px">
+    <h1 style="color:black; text-align-last:center;">Almacenamiento</h1>
+</div>
+
+
+
+<div class="row responsive">
+
+    <div class="col-md-2" style=" padding-left: 20px;">
+
+        <div class="card">
+            <div class="card-header">
+                <a><i class="fa-solid fa-laptop-code"></i> DATOS</a>
+            </div>
+            <div class="card-body">
+                <h4 style="color:black">Capacidad Maxima: 20,000 Kg</h4>
+                <br /> <br /><br />
+                <h4 style="color:black">Nivel del Tanque:</h4>
+                <h3 style="color:black" id="lblpor"></h3>
+                <br /><br /><br />
+                <h4 style="color:black">Cantidad Total de Arena:</h4>
+                <h3 style="color:black" id="lbltotal"></h3>
+            </div>
+
+        </div>
+
+
+
+
+    </div>
+    <!-- div del tanque -->
+    <div id="materialTankContainer" class="col-lg-3">
+        <h4 style="color:black; text-align-last:center">Tanque De Almacenamiento</h4>
+        <smart-tank value="" id="tank" style="height:400px; width:350px;"></smart-tank>
+    </div>
+    <div class="col-md-3" style="padding-left: 51px;">
+        <!-- div de la temperatura -->
+        <figure class="highcharts-figure">
+            <div id="contentTempuratura" class="chart-container" style="height:300px; width:350px"></div>
+        </figure>
+    </div>
+    <!-- div del progressbar -->
+    <div class="col-lg-2" style="margin-top:10px; ">
+
+        <section class="section skills text-center">
+
+            <div class="container" style="text-align: -webkit-center;">
+                <h4 style="color:black; text-align-last:end">Estado Del Tanque</h4>
+
+                <div class="single-skill" style="padding-top:50px">
+                    
+                    <div class="circlechart" data-percentage="">
+                        <svg class="circle-chart">
+                            <circle class="circle-chart__background" cx="16.9" cy="16.9" r="15.9"></circle>
+                            <circle class="circle-chart__circle success-stroke" stroke-dasharray="92,100" cx="16.9" cy="16.9" r="15.9"></circle>
+                        </svg>
+                    </div>
+                </div>
+
+
+            </div>
+        </section>
+
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+
+
+
+    window.onload = chart;
+
+
+    function chart() {
+            var rd = {};
+           rd.Id =0;
+
+           $.ajax({
+                type:"POST",
+                url: '@Url.Action("almacenamiento")',
+                data: '{rd: ' + JSON.stringify(rd) + '}',
+                dataType: "json",
+                contentType:"application/json; chartset=uft-8",
+                success: function (Response) {
+
+                    if (Response != null) {
+                        $("#tank").val(Response.Nivel);
+                        $("#lblpor").html(Response.Nivel + "%");
+                        $("#lbltotal").html(Response.Nivel + "KG");
+
+
+                        function makesvg(percentage1, inner_text = "") {
+                            var svg = "";
+                            var percentage = "";
+                            var percentage_str = "";
+
+
+                            if (Response.Estado == true) {
+                                percentage_str = "Abierto"
+                                percentage = "0";
+                            } else {
+                                percentage_str = "Cerrado";
+                                percentage = "100";
+                            }
+
+                            var abs_percentage = Math.abs(percentage).toString();
+
+                            var classes = "";
+
+                            inner_text = "";
+                            if (percentage_str=="") {
+                                classes = "danger-stroke circle-chart__circle--negative";
+                            } else if (percentage_str == "Abierto") {
+                                classes = "#00ff67";
+                            } else {
+                                classes = "danger-stroke circle-chart__circle--negative";
+                            }
+
+                            svg = '<svg class="circle-chart" viewbox="0 0 33.83098862 33.83098862" xmlns="http://www.w3.org/2000/svg">'
+                                + '<circle class="circle-chart__background" cx="16.9" cy="16.9" r="15.9" />'
+                                + '<circle class="circle-chart__circle ' + classes + '"'
+                                + 'stroke-dasharray="' + abs_percentage + ',100"    cx="16.9" cy="16.9" r="15.9" />'
+                                + '<g class="circle-chart__info">'
+                                + '<text class="circle-chart__percent" x="17.9" y="15.5">' + percentage_str+ '</text>';
+
+                            if (inner_text) {
+                                svg += '<text class="circle-chart__subline" x="16.91549431" y="22">' + inner_text + '</text>'
+                            }
+
+                            svg += ' </g></svg>';
+
+                            return svg
+                        }
+
+                        (function ($) {
+
+                            $.fn.circlechart = function () {
+                                this.each(function () {
+
+                                    var percentage = $(this).data("percentage");
+                                    var inner_text = $(this).text();
+                                    $(this).html(makesvg(percentage, inner_text));
+                                });
+                                return this;
+                            };
+
+                        }(jQuery));
+
+                        $(function () {
+                            $('.circlechart').circlechart();
+                        });
+                        var gaugeOptions = {
+                            chart: {
+                                type: 'solidgauge'
+                            },
+
+                            title: null,
+
+                            pane: {
+                                center: ['50%', '85%'],
+                                size: '140%',
+                                startAngle: -90,
+                                endAngle: 90,
+                                background: {
+                                    backgroundColor:
+                                        Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
+                                    innerRadius: '60%',
+                                    outerRadius: '100%',
+                                    shape: 'arc'
+                                }
+                            },
+
+                            exporting: {
+                                enabled: false
+                            },
+
+                            tooltip: {
+                                enabled: false
+                            },
+
+                            // the value axis
+                            yAxis: {
+                                stops: [
+                                    [0.1, '#55BF3B'], // green
+                                    [0.5, '#DDDF0D'], // yellow
+                                    [0.9, '#DF5353'] // red
+                                ],
+                                lineWidth: 0,
+                                tickWidth: 0,
+                                minorTickInterval: null,
+                                tickAmount: 2,
+                                title: {
+                                    y: -70
+                                },
+                                labels: {
+                                    y: 16
+                                }
+                            },
+
+                            plotOptions: {
+                                solidgauge: {
+                                    dataLabels: {
+                                        y: 5,
+                                        borderWidth: 0,
+                                        useHTML: true
+                                    }
+                                }
+                            }
+                        };
+                        // The speed gauge
+                        var chartSpeed = Highcharts.chart('contentTempuratura', Highcharts.merge(gaugeOptions, {
+                            title: {
+                                text: 'Temperatura'
+                            },
+                            yAxis: {
+                                min: 0.0,
+                                max: 100.0
+
+                            },
+
+                            credits: {
+                                enabled: false
+                            },
+
+                            series: [{
+                                name: 'Temperatura',
+                                data: [Response.temAlmacenamiento],
+                                dataLabels: {
+                                    format:
+                                        '<div style="text-align:center">' +
+                                        '<span style="font-size:25px">{y}</span><br/>' +
+                                        '<span style="font-size:12px;opacity:0.4">°C</span>' +
+                                        '</div>'
+                                },
+                                tooltip: {
+                                    valueSuffix: '°C'
+                                }
+                            }]
+
+                        }));
+
+
+                    } else {
+                        alert('NULO');
+                    }
+                },
+            });
+        }
+
+</script>
+
+
+

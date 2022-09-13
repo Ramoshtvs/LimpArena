@@ -1,0 +1,225 @@
+﻿
+@{
+    ViewBag.Title = "separacionMagneticos";
+}
+
+<script src="~/Scripts/Highcharts/highcharts.js"></script>
+<script src="~/Scripts/Highcharts/highcharts-more.js"></script>
+<script src="~/Scripts/Highcharts/exporting.js"></script>
+<script src="~/Scripts/Highcharts/export-data.js"></script>
+<script src="~/Scripts/Highcharts/accessibility.js"></script>
+<script src="~/Scripts/Highcharts/series-label.js"></script>
+
+
+
+
+<div class="row">
+    <div class="col-lg-7" style="text-align:end">
+        <h2>Separación de Magneticos</h2>
+    </div>
+    <div class="col-lg-4" style="text-align: end; padding-top:17px">
+        <input id="fecha" type="date" onchange="chart()" style="font-size: 16px;  width:200px; height:40px; text-transform: uppercase; font-weight:bold;" />
+    </div>
+</div>
+
+ <div class="row responisve">
+     <div class="col-lg-2" style=" word-wrap: break-word; padding-left:25px">                         
+         <h3> Contaminación:</h3>
+         <h3 id="lblContaminacionSM"> </h3>
+         <br />
+         <h3> Residuo:</h3>
+         <h3 id="lblParticulasSM"> </h3>
+         <br />
+         <h3> Fecha Y Hora:</h3>
+         <h3 id="lblFechaSM" style="font-size:medium"> </h3>                          
+     </div>
+     <div class="col-lg-9">
+         <figure class="highcharts-figure"> 
+             <div>
+                 <div id="GrafSmResiduos" style="height: 250px; width: 1100px; box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;"></div>
+             </div>
+             
+         </figure>
+
+         <figure class="highcharts-figure">
+             <div>
+                 <div id="GrafSmContaminacion" style="height:250px; padding-top:10px; width: 1100px; box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;"></div>
+             </div>
+             
+         </figure>
+     </div>
+ </div>
+
+
+
+
+
+
+
+<script>
+    setInterval("chart()", 10000);
+    window.onload = time;
+    function time() {
+        var now = new Date();
+        var day = ("0" + (now.getDate())).slice(-2);
+        var mes = ("0" + (now.getMonth() + 1)).slice(-2);
+        var year = now.getFullYear();
+        $("#fecha").val(year + "-" + mes + "-" + day);
+        chart()
+    }
+
+    function chart() {
+
+        var rd = {};
+        rd.Fecha = $("#fecha").val();
+
+           $.ajax({
+                type:"POST",
+                url: '@Url.Action("separacionMagneticos")',
+                data: '{rd: ' + JSON.stringify(rd) + '}',
+                dataType: "json",
+                contentType:"application/json; chartset=uft-8",
+               success: function (Response) {
+
+
+
+                   if (Response != null) {
+                       $("#lblContaminacionSM").html(Response.varcontamSM + " %");
+                       $("#lblParticulasSM").html(Response.varpartiSM + " AFS");
+                       $("#lblFechaSM").html(Response.varfechaSM);
+
+                       var RangCont = Response.BarMINSmContaminacion;
+
+
+
+                       Highcharts.chart('GrafSmResiduos', {
+
+                       title: {
+                           text: 'Residuos'
+                            },
+                            credits: {
+                           enabled: false
+                            },
+
+                            yAxis: {
+                           title: {
+                               text: 'Cantidad de residuo'
+                                }
+                           },
+
+                            xAxis: {
+                           categories: Response.lstfechasm,
+                                labels: {
+                               rotation: 45,
+                                    style: { color: 'Black' }
+                               }
+                           },
+
+                            legend: {
+                           layout: 'vertical',
+                                align: 'right',
+                                verticalAlign: 'middle'
+                            },
+
+                            plotOptions: {
+                           series: {
+                               label: {
+                                   connectorAllowed: false
+                                    }
+
+                               }
+                           },
+
+                            series: [{
+                           name: 'Residuo',
+                                data: Response.lstparticulasSM
+                            }, {
+                           name: 'Max',
+                                data: Response.BarMaxSmResiduo
+                                }, {
+                           name: 'Min',
+                                data: Response.BarMinSM
+
+                            }],
+                            responsive: {
+                           rules: [{
+                               condition: {
+                                   maxWidth: 500
+                                    },
+                                    chartOptions: {
+                                   legend: {
+                                       layout: 'horizontal',
+                                            align: 'center',
+                                            verticalAlign: 'bottom'
+                                        }
+                                   }
+                               }]
+                            }
+
+                       });
+
+
+                        Highcharts.chart('GrafSmContaminacion', {
+
+                            title: {
+                                text: 'Contaminación'
+                            }, credits: {
+                                enabled: false
+                            },
+
+                            xAxis: {
+                                categories: Response.lstfechasm,
+                                labels: {
+                                    rotation: 45,
+                                    style: { color: 'Black' }
+                                }
+                            },
+
+                            yAxis: {
+                                title: {
+                                    text: null
+                                }
+                            },
+
+                            tooltip: {
+                                crosshairs: true,
+                                shared: true,
+                                valueSuffix: 'Contaminación:'
+                            },
+
+                            series: [{
+                                name: 'Contaminacion',
+                                data: Response.lstcontaminacionSM,
+                                zIndex: 1,
+                                marker: {
+                                    fillColor: 'white',
+                                    lineWidth: 2,
+                                    lineColor: Highcharts.getOptions().colors[0]
+                                }
+                            }, {
+                                name: 'Range',
+                                data: RangCont,
+                                type: 'arearange',
+                                lineWidth: 0,
+                                linkedTo: ':previous',
+                                color: Highcharts.getOptions().colors[0],
+                                fillOpacity: 0.3,
+                                zIndex: 0,
+                                marker: {
+                                    enabled: false
+                                }
+                                }]
+                        });
+
+                   } else {
+                       alert('NULO');
+                       $("#lblContaminacionSM").html("0%");
+                       $("#lblParticulasSM").html("0 AFS");
+                       $("#lblFechaSM").html("///");
+                   }
+               },
+           });
+    }
+</script>
+
+

@@ -1,0 +1,171 @@
+﻿
+@{
+    ViewBag.Title = "AlmacenamientoFinal";
+}
+
+
+<script src="~/Scripts/chartjs/Chart.min.js"></script>
+<script src="~/Scripts/chartjs/chart.js"></script>
+<script src="~/Scripts/chart.js"></script>
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+
+<script src="~/Estilos table jquery/jquery-2.1.1.min.js"></script>
+<script src="~/Estilos table jquery/dataTables.buttons.min.js"></script>
+
+<script src="~/Estilos table jquery/jszip.min.js"></script>
+<script src="~/Estilos table jquery/pdfmake.min.js"></script>
+<script src="~/Estilos table jquery/vfs_fonts.js"></script>
+<script src="~/Estilos table jquery/buttons.html5.min.js"></script>
+<script src="~/Estilos table jquery/buttons.print.min.js"></script>
+<script src="~/Estilos table jquery/jquery.dataTables.min.js"></script>
+
+<link href="~/Estilos table jquery/buttons.dataTables.min.css" rel="stylesheet" />
+<link href="~/Estilos table jquery/jquery.dataTables.min.css" rel="stylesheet" />
+
+<div class="row responsive" style="padding-top: 20px; padding-left: 0px;">
+    <div class="col-md-4" style="padding-left:0px">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <canvas id="myChars"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-8">
+        <div class="row">
+            <div class="col-md-6">
+                <button type="button" onclick="checkt()" class="btn-lg btn-warning">Salida</button>
+                <br />
+                <br />
+            </div>
+
+            <div class="col-md-6">
+
+                <h2 id="lblTamaño" style="color:black;"></h2>
+
+            </div>
+        </div>
+
+
+        <table id="tblAlmacenamiento" class="table table-striped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>PESO</th>
+                    <th>PALLET</th>
+                    <th>FECHA ENTRADA</th>
+                </tr>
+
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+
+    </div>
+</div>
+
+
+
+@section scripts{
+    <script>
+
+        var lista = document.getElementsByClassName("checks");
+        var contrilPie = document.getElementById("myChars");
+
+        setInterval("chart()", 1000000);
+        let grafPie = null;
+        window.onload = chart;
+        function chart() {
+
+            var rd = {};
+            rd.Fecha = 0;
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("AlmacenamientoFinal")',
+                data: '{rd: ' + JSON.stringify(rd) + '}',
+                dataType: "json",
+                contentType: "application/json; chartset=uft-8",
+                success: function (Response) {
+
+                    if (Response != null) {
+
+                        $(document).ready(function () {
+                            $.noConflict();
+                            $('#tblAlmacenamiento').DataTable()
+
+                        });
+                        $("#lblTamaño").html("Total: "+Response.VarAlmacenamientoF+" KG");
+
+
+                        if (grafPie != null) {
+                            grafPie.destroy();
+                        }
+                         grafPie = new Chart(contrilPie, {
+                            type: 'pie',
+                            data: {
+                                labels: Response.lstpallet,
+                                datasets: [{
+                                    data: Response.lstAlmacenamientoF,
+                                    backgroundColor: Response.lstRandom
+                                }],
+                            },
+                        });
+
+                        var items = Response.lstAlmacenamiento;
+
+
+                        $("#tblAlmacenamiento > tbody").empty();
+
+                        $.each(items, function (index, value) {
+                            $("#tblAlmacenamiento")
+                                .append(
+                                    "<tr><td><input type='checkbox' class='checks' value='" + value.Pallet + "' name='" + value.Pallet + "'/></td><td>" + value.Peso
+                                    + "</td><td>" + value.Pallet
+                                    + "</td><td>" + value.Fecha
+                                    + "</td></tr>"
+                            );
+
+                        });
+
+                    } else {
+                        alert('NO ENTRO');
+                    }
+
+                }
+
+            });
+        }
+
+        function checkt() {
+
+            var listas=[];
+            for (var i = 0; i < lista.length; i++) {
+                if (lista[i].checked == true) {
+                    listas[i] = lista[i].value;
+                }
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ActualizarTabla")',
+                data: JSON.stringify(listas),
+                dataType: "json",
+                contentType: "application/json; chartset=uft-8",
+                success: function (Response) {
+                    if (Response != null) {
+                        window.location.reload();
+
+                    } else {
+                        alert('NO ENTRO');
+                    }
+                },
+            });
+         }
+
+    </script>
+}
+
+

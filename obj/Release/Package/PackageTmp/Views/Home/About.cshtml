@@ -1,0 +1,64 @@
+﻿@{
+    ViewBag.Title = "About";
+}
+
+
+<!--Import jQuery before export.js-->
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<!--Data Table-->
+<script type="text/javascript" src=" https://cdn.datatables.net/buttons/1.2.4/js/dataTables.buttons.min.js"></script>
+<!--Export table buttons-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+<script type="text/javascript" src="https://cdn.rawgit.com/bpampuch/pdfmake/0.1.24/build/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdn.rawgit.com/bpampuch/pdfmake/0.1.24/build/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.4/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.1/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<!--Export table button CSS-->
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.2.4/css/buttons.dataTables.min.css">
+<link href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" rel="stylesheet" />
+
+<table id="table_id" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>Marks</th>
+            <th>Grade</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Maths</td>
+            <td>90</td>
+            <td>A+</td>
+        </tr>
+        <tr>
+            <td>Science</td>
+            <td>85</td>
+            <td>A</td>
+        </tr>
+        <tr>
+            <td>English</td>
+            <td>80</td>
+            <td>A</td>
+        </tr>
+        <tr>
+            <td>EVS</td>
+            <td>75</td>
+            <td>B+</td>
+        </tr>
+        <tr>
+            <td>History</td>
+            <td>70</td>
+            <td>B</td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    $(document).ready(function () {
+        $.noConflict();
+        $("#table_id").DataTable();       
+    });
+
+</script>

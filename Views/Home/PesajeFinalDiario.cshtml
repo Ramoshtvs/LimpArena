@@ -1,0 +1,231 @@
+﻿
+@{
+    ViewBag.Title = "PesajeFinalDiario";
+}
+
+
+<script src="~/Scripts/Highcharts/highcharts.js"></script>
+<script src="~/Scripts/Highcharts/highcharts-more.js"></script>
+<script src="~/Scripts/Highcharts/exporting.js"></script>
+<script src="~/Scripts/Highcharts/export-data.js"></script>
+<script src="~/Scripts/Highcharts/accessibility.js"></script>
+<link href="~/Content/bootstrap5/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/switch.css" rel="stylesheet" />
+
+
+
+<div class="row">
+    <div class="row" style="padding:20px">
+        <div class="col-lg-1"></div>
+
+        <div class="col-lg-3">
+            <div class="row">
+                <div class="col-lg-6" style="padding-top:10px; text-align:end"> <h4 id="lbletiqueta">PESAJE MENSUAL</h4></div>
+                <div class="col-lg-5" style="padding-left:0px">
+                    <label class="switch">
+                        <input type="checkbox" id="switch" onclick="toggle()">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4" style="text-align:center"><h1>Pesaje De La Arena</h1></div>
+
+
+    </div>
+    <div class="row" id="Diario">
+        <div class="col-lg-11" >
+            <div style="text-align-last: end">
+                <input id="fecha" type="month" onchange="chart()" style="font-size: 16px;  width:200px; height:40px; text-transform: uppercase; font-weight:bold;" />
+            </div>
+
+            <figure class="highcharts-figure" style="padding:10px">
+                <div id="GrafPesajeFD" style="height:500px"></div>
+            </figure>
+        </div>
+    </div>
+    
+    <div class="row" id="Mensual">
+
+        <div class="col-lg-11" style="padding:10px">
+            <div style="text-align:end">
+                <div style="display: inline-block; ">
+                    @Html.DropDownList("lstYear", (IEnumerable<SelectListItem>)ViewBag.year, new
+                    {
+                   id = "Year",
+                   @class = "Form-control",
+                   @onchange = "Chart1()",
+                   @style = "font-size: 16px;  width:200px; height:40px; font-weight:bold; text-align-last: center"
+               })
+                </div>
+            </div>
+
+            
+            <div>
+                <figure class="highcharts-figure">
+                    <div id="GrafPesajeMF"></div>
+                </figure>
+            </div>
+            
+        </div>
+    </div>
+
+
+</div>
+
+
+
+
+
+
+
+<script>
+    window.onload = time;
+    function time() {
+        var now = new Date();
+        var mes = ("0" + (now.getMonth() + 1)).slice(-2);
+        var year = now.getFullYear();
+        $("#fecha").val(year + "-" + mes);
+        chart()
+    }
+
+    function toggle() {
+        var remember = document.getElementById('switch');
+
+        if (remember.checked) {
+
+            $("#Diario").hide();
+            $("#Mensual").show();
+            $("#lbletiqueta").html("PESAJE DIARIO");
+            chart1()
+        } else {
+            $("#Diario").show();
+            $("#Mensual").hide();
+            $("#lbletiqueta").html("PESAJE MENSUAL");
+            chart()
+
+        }
+    }
+    function chart() {
+
+            var rd = {};
+            rd.Fecha = $("#fecha").val();
+
+            $.ajax({
+                type:"POST",
+                url: '@Url.Action("PesajeFinalDiario")',
+                data: '{rd: ' + JSON.stringify(rd) + '}',
+                dataType: "json",
+                contentType:"application/json; chartset=uft-8",
+                success: function (Response) {
+
+                    if (Response != null) {
+
+                        Highcharts.chart('GrafPesajeFD', {
+                            chart: {
+                                type: 'line'
+                            },
+                            title: {
+                                text: 'Pesaje Diario'
+                            },
+                            xAxis: {
+                                categories: Response.lstFechaPesoDF,
+                                labels: {
+                                    skew3d: true,
+                                    rotation: 45
+                                }
+                            },
+                            yAxis: {
+                                title: {
+                                    text: 'Peso (KG)'
+                                }
+                            }, credits: {
+                                enabled: false
+                            },
+                            plotOptions: {
+                                line: {
+                                    dataLabels: {
+                                        enabled: true
+                                    },
+                                    enableMouseTracking: false
+                                }
+                            },
+                            series: [{
+                                name: 'Peso (KG)',
+                                data: Response.lstPesoDiarioF
+                            }]
+                        });
+
+
+
+                    } else {
+                        alert('NULO');
+                    }
+                },
+            });
+        }
+
+       function chart1() {
+
+            var rd = {};
+         rd.Fecha = "01/01/" + $("#Year").val();
+
+            $.ajax({
+                type:"POST",
+                url: '@Url.Action("PesajeFinalMensual")',
+                data: '{rd: ' + JSON.stringify(rd) + '}',
+                dataType: "json",
+                contentType:"application/json; chartset=uft-8",
+                success: function (Response) {
+
+                    if (Response != null) {
+
+
+                        Highcharts.chart('GrafPesajeMF', {
+                            title: {
+                                text: 'Pesaje Mensual'
+                            },
+                            credits: {
+                                enabled: false
+                            },
+                            yAxis: {
+                                title: {
+                                    text: 'Kilogramos',
+                                    style: {
+                                        color: 'black'
+                                    }
+                                }
+                            },
+                            xAxis: {
+                                categories: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+
+                                labels: {
+
+                                    style: { color: 'Black' }
+                                }
+                            },
+                            series: [{
+                                type: 'column',
+                                name: 'KG',
+                                colorByPoint: true,
+                                data: Response.lstPesoMensualF,
+                                showInLegend: false
+                            }]
+                        });
+
+
+
+                    } else {
+                        alert('NULO');
+                    }
+                },
+            });
+        }
+</script>
+
+
+
+
+
+
+
