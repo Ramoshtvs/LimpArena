@@ -48,7 +48,7 @@
 
 
 <script>
-    setInterval("chart()", 10000);
+   // setInterval("chart()", 10000);
     window.onload = time;
     function time() {
         var now = new Date();
@@ -64,6 +64,12 @@
         var rd = {};
         rd.Fecha = $("#fecha").val();
 
+        var actual = new Date();
+        var daia = ("0" + (actual.getDate())).slice(-2);
+        var mese = ("0" + (actual.getMonth() + 1)).slice(-2);
+        var anio = actual.getFullYear();
+        var fechaActual = anio + "-" + mese + "-" + daia;
+
            $.ajax({
                 type:"POST",
                 url: '@Url.Action("QuemadoResina")',
@@ -78,51 +84,170 @@
                    $("#lblFecha").html(Response.VarFechaQR);
 
                    if (Response != null) {
+                       if (rd.Fecha == fechaActual) {
+                           Highcharts.chart('GrafQuemadoR', {
+                               chart: {
+                                   type: 'line',
+                                   events: {
+                                       load: function () {
+                                           var series = this.series[0];
+                                           var series1 = this.series[1];
+                                           var series2 = this.series[2];
+                                           setInterval(
+                                               function punto() {
+                                                   var rd = {};
+                                                   rd.Fecha = $("#fecha").val();
+                                                   $.ajax({
+                                                       type: "POST",
+                                                       url: '@Url.Action("ValidarPuntoQR")',
+                                                       data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                       dataType: "json",
+                                                       contentType: "application/json; chartset=uft-8",
+                                                       success: function (Responses) {
+                                                           if (Responses != null) {
+                                                               if (Responses.VaraddTemArena > 0) {
+                                                                   var x = Responses.VaraddFecha,
+                                                                       y = Responses.VaraddTemArena,
+                                                                       w = Responses.VaraddTemExt,
+                                                                       z = Responses.VaraddTemInt;
 
-                       Highcharts.chart('GrafQuemadoR', {
-                           chart: {
-                               type: 'line'
-                           },
-                           title: {
-                               text: 'Temperatura'
-                           },
-                           credits: {
-                               enabled: false
-                           },
-                           xAxis: {
-                               categories: Response.lstFechaQR,
-                               labels: {
-                                   rotation: 45,
-                                   style: { color: 'Black' }
-                               }
-                           },
-                           yAxis: {
+                                                                   series.addPoint([x, z]);
+                                                                   series1.addPoint([x, w]);
+                                                                   series2.addPoint([x, y]);
+                                                               }
+                                                           }
+                                                       },
+                                                   });
+                                               }, 5000);
+                                       }
+                                   }
+                               },
                                title: {
-                                   text: 'Temperatura (°C)'
-                               }
-                           },
-                           plotOptions: {
-                               line: {
-                                   dataLabels: {
-                                       enabled: true
-                                   },
-                                   enableMouseTracking: false
-                               }
-                           }, series: [
-                               {
-                                   name: 'Temperatura Interna',
-                                   data: Response.lstTempInternaQR
-                               }, {
-                                   name: 'Temperatura Externa',
-                                   data: Response.lstTempExternaQR
-                               }, {
-                                   name: 'Temperatura Arena',
-                                   data: Response.lstTempArenaQR
-                               }
-                           ]
+                                   text: 'Temperatura'
+                               },
+                               credits: {
+                                   enabled: false
+                               },
+                               xAxis: {
 
-                       });
+                                   type: 'category',
+                                   labels: {
+                                       rotation: 40,
+                                       style: { color: 'Black' }
+                                   }
+                               },
+                               yAxis: {
+                                   title: {
+                                       text: 'Temperatura (°C)'
+                                   }
+                               },
+                               plotOptions: {
+                                   line: {
+                                       dataLabels: {
+                                           enabled: true
+                                       },
+                                       enableMouseTracking: false
+                                   }
+                               }, series: [
+                                   {
+                                       name: 'Temperatura Interna',
+                                       data: (function () {
 
+                                           var data = [],
+                                               dat = Response.lstTempInternaQR,
+                                               fec = Response.lstFechaQR;
+
+                                           for (var i = 0; i < dat.length; i++) {
+
+                                               data.push({
+                                                   name: fec[i],
+                                                   y: dat[i]
+                                               });
+
+                                           }
+                                           return data;
+                                       }())
+                                   }, {
+                                       name: 'Temperatura Externa',
+                                       data: (function () {
+
+                                           var data = [],
+                                               dat = Response.lstTempExternaQR;
+
+                                           for (var i = 0; i < dat.length; i++) {
+
+                                               data.push({
+                                                   y: dat[i]
+                                               });
+
+                                           }
+                                           return data;
+                                       }())
+                                   }, {
+                                       name: 'Temperatura Arena',
+                                       data: (function () {
+
+                                           var data = [],
+                                               dat = Response.lstTempArenaQR;
+
+                                           for (var i = 0; i < dat.length; i++) {
+
+                                               data.push({
+                                                   y: dat[i]
+                                               });
+
+                                           }
+                                           return data;
+                                       }())
+                                   }
+                               ]
+
+                           });
+                       } else {
+                           Highcharts.chart('GrafQuemadoR', {
+                               chart: {
+                                   type: 'line'                                  
+                               },
+                               title: {
+                                   text: 'Temperatura'
+                               },
+                               credits: {
+                                   enabled: false
+                               },
+                               xAxis: {
+                                   categories: Response.lstFechaQRL,
+                                   labels: {
+                                       rotation: 45,
+                                       style: { color: 'Black' }
+                                   }
+                               },
+                               yAxis: {
+                                   title: {
+                                       text: 'Temperatura (°C)'
+                                   }
+                               },
+                               plotOptions: {
+                                   line: {
+                                       dataLabels: {
+                                           enabled: true
+                                       },
+                                       enableMouseTracking: false
+                                   }
+                               }, series: [
+                                   {
+                                       name: 'Temperatura Interna',
+                                       data: Response.lstTempInternaQR
+                                   }, {
+                                       name: 'Temperatura Externa',
+                                       data: Response.lstTempExternaQR
+                                   }, {
+                                       name: 'Temperatura Arena',
+                                       data: Response.lstTempArenaQR
+                                   }
+                               ]
+
+                           });
+                       }
                    } else {
                        alert('NULO');
 

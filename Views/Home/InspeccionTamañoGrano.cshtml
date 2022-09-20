@@ -8,7 +8,7 @@
 <script src="~/Scripts/Highcharts/drilldown.js"></script>
 <script src="~/Scripts/Highcharts/exporting.js"></script>
 <script src="~/Scripts/Highcharts/export-data.js"></script>
-<script src="~/Scripts/Highcharts/accessibility.js"></script>
+<script src="~/Scripts/Highcharts/accessibility.js"></script>   
 
 
 <div class="row">
@@ -29,7 +29,7 @@
 
 
 <script>
-    setInterval("chart()", 10000);
+    
     window.onload = time;
     function time() {
         var now = new Date();
@@ -45,6 +45,12 @@
         var rd = {};
         rd.Fecha = $("#fecha").val();
 
+        var actual = new Date();
+        var daia = ("0" + (actual.getDate())).slice(-2);
+        var mese = ("0" + (actual.getMonth() + 1)).slice(-2);
+        var anio = actual.getFullYear();
+        var fechaActual = anio + "-" + mese + "-" + daia;
+
            $.ajax({
                 type:"POST",
                 url: '@Url.Action("InspeccionTamañoGrano")',
@@ -53,10 +59,44 @@
                 contentType:"application/json; chartset=uft-8",
                success: function (Response) {
                    if (Response != null) {
+                       if (rd.Fecha == fechaActual) {
 
-                       Highcharts.chart('GrafBarras', {
+                           Highcharts.chart('GrafBarras', {
                            chart: {
-                               type: 'column'
+                                type: 'column',
+                                events: {
+                                     click: function p() {
+                                        var url = '@Url.Action("InspeccionTamañoGrano","Home")';
+                                        window.location.href = url;
+                                    },
+                                        load: function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function barra() {
+                                                    var rd = {};
+                                                    rd.Fecha = $("#fecha").val();
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("validarBarras")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.varpointaddTG > 0) {
+
+                                                                    var x = Responses.varpointaddFechaTG,
+                                                                        y = Responses.varpointaddTG;
+
+                                                                    series.addPoint([ x, y ]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 10000);
+                                        }
+                                }
                            },
                            title: {
                                text: 'Tamaño De Grano'
@@ -70,9 +110,9 @@
                                enabled: false
                            },
                            xAxis: {
-                               categories: Response.lstFechaTG,
+                               type: 'category',
                                labels: {
-                                   rotation: 45,
+                                   rotation: 40,
                                    style: { color: 'Black' }
                                }
                            },
@@ -87,7 +127,7 @@
                            },
                            plotOptions: {
                                series: {
-                                   borderWidth: 0,
+                                   borderWidth: 10,
                                    dataLabels: {
                                        enabled: true,
                                        format: '{point.y:.1f} AFS'
@@ -99,10 +139,79 @@
                                {
                                    name: ' AFS',
                                    colorByPoint: true,
-                                   data: Response.lstTamanoTG
+                                   data: (function () {
+
+                                       var data = [],
+                                           dat = Response.lstTamanoTG,
+                                           fec = Response.lstFechaTG;
+
+                                       for (var i = 0; i < dat.length; i++) {
+
+                                               data.push({
+                                                   name: fec[i],
+                                                   y: dat[i]
+                                               });
+
+                                       }
+                                       return data;
+                                   }())
+
+
                                }
                            ]
                        });
+                       } else {
+                           Highcharts.chart('GrafBarras', {
+                               chart: {
+                                type: 'column',                                
+                            },
+                                title: {
+                                    text: 'Inspección Tamaño De Grano'
+                                },
+                                accessibility: {
+                                    announceNewData: {
+                                        enabled: true
+                                    }
+                                },
+                                credits: {
+                                    enabled: false
+                                },
+                                xAxis: {
+                                    categories: Response.lstFechaTGH,
+                                    labels: {
+                                        rotation: 45,
+                                        style: { color: 'Black' }
+                                    }
+                                },
+                                yAxis: {
+                                    title: {
+                                        text: 'Tamaño Del Grano'
+                                    }
+
+                                },
+                                legend: {
+                                    enabled: false
+                                },
+                                plotOptions: {
+                                    series: {
+                                        borderWidth: 0,
+                                        dataLabels: {
+                                            enabled: true,
+                                            format: '{point.y:.1f} AFS'
+                                        }
+                                    }
+                                },
+                                series: [
+                                    {
+                                        name: ' AFS',
+                                        colorByPoint: true,
+                                        data: Response.lstTamanoTG
+                                    }
+                                ]
+                        });
+                       }
+
+
 
 
                    } else {

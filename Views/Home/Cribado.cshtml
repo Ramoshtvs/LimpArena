@@ -69,8 +69,8 @@
     </div>
 
 
-<script>
-    setInterval("chart()", 10000);
+    <script>
+
     window.onload = time;
     function time() {
         var now = new Date();
@@ -79,6 +79,7 @@
         var year = now.getFullYear();
         $("#fecha").val(year + "-" + mes + "-" + day);
         chart()
+       
     }
 
 
@@ -103,9 +104,39 @@
                         $("#lblFecha").html(Response.fechaCribado);
                         $("#lblContaminacion").html(Response.contaminacionCribado);
 
+
                         Highcharts.chart('GrafBarras', {
                             chart: {
-                                type: 'column'
+                                type: 'column',
+                                events: {
+                                    load:function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function barra() {
+                                                    var rd = {};
+                                                    rd.Fecha = $("#fecha").val();
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("validarBarrascribado")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.newaddContaminacion > 0) {
+
+                                                                    var x = Responses.newaddfechaCribado,
+                                                                        y = Responses.newaddContaminacion;
+
+                                                                    series.addPoint([ x, y ]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 5000);
+                                        }
+                                }
                             },
                             title: {
                                 text: 'Contaminación'
@@ -119,7 +150,8 @@
                                 enabled: false
                             },
                             xAxis: {
-                                categories:Response.fechaC,
+
+                                type: 'category',
                                 labels: {
                                     rotation: 45,
                                     style: { color: 'Black' }
@@ -143,19 +175,61 @@
                                     }
                                 }
                             },
-
                             series: [
                                 {
                                     name: 'Contaminación',
                                     colorByPoint: true,
-                                    data: Response.contaminacionC
+                                    data:(function () {
+                                            var data = [],
+                                                dat = Response.contaminacionC,
+                                                fec = Response.fechaC;
+
+                                            for (var i = 0; i < dat.length; i++) {
+
+                                                data.push({
+                                                    name: fec[i],
+                                                    y: dat[i]
+                                                });
+
+                                            }
+                                            return data;
+                                        }())
                                 }
                             ]
                         });
 
                         Highcharts.chart('GrafBarrasR', {
                             chart: {
-                                type: 'column'
+                                type: 'column',
+                                 events: {
+                                     load: function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function barra() {
+                                                    var rd = {};
+                                                    rd.Fecha = $("#fecha").val();
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("validarBarrascribado")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.newaddResiduo > 0) {
+
+                                                                    var x = Responses.newaddfechaCribado,
+                                                                        y = Responses.newaddResiduo;
+
+                                                                    series.addPoint([ x, y ]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 5000);
+                                        }
+                                }
                             },
                             title: {
                                 text: 'Reciduo'
@@ -169,7 +243,7 @@
                                 enabled: false
                             },
                             xAxis: {
-                                categories: Response.fechaC,
+                                type: 'category',
                                 labels: {
                                     rotation: 45,
                                     style: { color: 'Black' }
@@ -198,12 +272,25 @@
                                 {
                                     name: 'Reciduo',
                                     colorByPoint: true,
-                                    data: Response.ResiduoC
+                                    data: (function () {
+                                        var data = [],
+                                            dat = Response.ResiduoC,
+                                            fec = Response.fechaC;
+
+                                        for (var i = 0; i < dat.length; i++) {
+
+                                            data.push({
+                                                name: fec[i],
+                                                y: dat[i]
+                                            });
+
+                                        }
+                                        return data;
+                                    }())
                                 }
                             ]
                         });
 
-                        
 
                    } else {
                        alert('NULO');
@@ -211,5 +298,4 @@
                },
            });
     }
-</script>
-
+    </script>

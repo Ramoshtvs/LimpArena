@@ -72,7 +72,7 @@
 
         var rd = {};
         rd.Fecha = $("#fecha").val();
-
+            
            $.ajax({
                 type:"POST",
                 url: '@Url.Action("separacionMagneticos")',
@@ -94,49 +94,52 @@
 
                        Highcharts.chart('GrafSmResiduos', {
 
-                       title: {
-                           text: 'Residuos'
-                            },
-                            credits: {
-                           enabled: false
-                            },
-
-                            yAxis: {
                            title: {
-                               text: 'Cantidad de residuo'
-                                }
+                               text: 'Residuos'
+                           },
+                           credits: {
+                               enabled: false
                            },
 
-                            xAxis: {
-                           categories: Response.lstfechasm,
-                                labels: {
-                               rotation: 45,
-                                    style: { color: 'Black' }
+                           yAxis: {
+                               title: {
+                                   text: 'Cantidad de residuo'
                                }
                            },
 
-                            legend: {
-                           layout: 'vertical',
-                                align: 'right',
-                                verticalAlign: 'middle'
-                            },
+                           xAxis: {
+                               categories: Response.lstfechasm,
+                               labels: {
+                                   rotation: 45,
+                                   style: { color: 'Black' }
+                               }
+                           },
 
-                            plotOptions: {
-                           series: {
-                               label: {
-                                   connectorAllowed: false
-                                    }
+                           legend: {
+                               layout: 'vertical',
+                               align: 'right',
+                               verticalAlign: 'middle'
+                           },
+
+                           plotOptions: {
+                               series: {
+                                   label: {
+                                       connectorAllowed: false
+                                   }
 
                                }
                            },
 
-                            series: [{
-                           name: 'Residuo',
-                                data: Response.lstparticulasSM
-                            }, {
-                           name: 'Max',
-                                data: Response.BarMaxSmResiduo
-                                }, {
+                           series: [{
+                               name: 'Residuo',
+                               data: Response.lstparticulasSM
+                           },
+                           {
+                               name: 'Max',
+                               data: Response.BarMaxSmResiduo
+                               },
+
+                               {
                            name: 'Min',
                                 data: Response.BarMinSM
 

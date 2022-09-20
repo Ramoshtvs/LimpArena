@@ -4,33 +4,60 @@
 
 
 <script src="~/Scripts/Highcharts/highcharts.js"></script>
-<script src="~/Scripts/Highcharts/data.js"></script>
-<script src="~/Scripts/Highcharts/drilldown.js"></script>
+<script src="~/Scripts/Highcharts/highcharts-more.js"></script>
 <script src="~/Scripts/Highcharts/exporting.js"></script>
 <script src="~/Scripts/Highcharts/export-data.js"></script>
 <script src="~/Scripts/Highcharts/accessibility.js"></script>
-<script src="https://code.highcharts.com/modules/variwide.js"></script>
+<script src="~/Scripts/Highcharts/series-label.js"></script>
+
+
 
 
 <div class="row">
-    <div class="col-lg-8" style="text-align:end">
-        <h2>Inspección Tamaño Del Grano</h2>
+    <div class="col-lg-7" style="text-align:end">
+        <h2>Separación de Magneticos</h2>
     </div>
-    <div class="col-lg-3" style="text-align: end; padding-top:17px">
+    <div class="col-lg-4" style="text-align: end; padding-top:17px">
         <input id="fecha" type="date" onchange="chart()" style="font-size: 16px;  width:200px; height:40px; text-transform: uppercase; font-weight:bold;" />
     </div>
 </div>
-<div class="row responsive" style="padding-top:10px">
-    <div class="col-lg-12">
+
+<div class="row responisve">
+    <div class="col-lg-2" style=" word-wrap: break-word; padding-left:25px">
+        <h3> Contaminación:</h3>
+        <h3 id="lblContaminacionSM"> </h3>
+        <br />
+        <h3> Residuo:</h3>
+        <h3 id="lblParticulasSM"> </h3>
+        <br />
+        <h3> Fecha Y Hora:</h3>
+        <h3 id="lblFechaSM" style="font-size:medium"> </h3>
+    </div>
+    <div class="col-lg-9">
+        @*<figure class="highcharts-figure">
+            <div>
+                <div id="GrafSmResiduos" style="height: 250px; width: 1100px; box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;"></div>
+            </div>
+
+        </figure>*@
+
         <figure class="highcharts-figure">
-            <div id="GrafBarras" style="height:100%;"></div>
+            <div>
+                <div id="GrafSmContaminacion" style="height:250px; padding-top:10px; width: 1100px; box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;"></div>
+            </div>
+
         </figure>
     </div>
 </div>
 
 
+
+
+
+
+
 <script>
-   
+
     window.onload = time;
     function time() {
         var now = new Date();
@@ -48,116 +75,138 @@
 
            $.ajax({
                 type:"POST",
-                url: '@Url.Action("InspeccionTamañoGrano")',
+                url: '@Url.Action("separacionMagneticos")',
                 data: '{rd: ' + JSON.stringify(rd) + '}',
                 dataType: "json",
                 contentType:"application/json; chartset=uft-8",
                success: function (Response) {
-                   if (Response != null) {
 
-                       Highcharts.chart('GrafBarras', {
-                           chart: {
-                               type: 'scatter',                               
-                                events: {
+
+
+                   if (Response != null) {
+                       $("#lblContaminacionSM").html(Response.varcontamSM + " %");
+                       $("#lblParticulasSM").html(Response.varpartiSM + " AFS");
+                       $("#lblFechaSM").html(Response.varfechaSM);
+
+                      var RangCont = Response.BarMINSmContaminacion;
+
+
+                        Highcharts.chart('GrafSmContaminacion', {
+                            chart: {
+                                    events: {
                                         load: function () {
-                                            var series = this.series[0];
+                                            var series = this.series[0]
+                                            var series1 = this.series[1];
+
                                             setInterval(
-                                                function barra() {
+                                                function punto() {
                                                     var rd = {};
                                                     rd.Fecha = $("#fecha").val();
                                                     $.ajax({
                                                         type: "POST",
-                                                        url: '@Url.Action("validarBarras")',
+                                                        url: '@Url.Action("ValidarPuntoSM")',
                                                         data: '{rd: ' + JSON.stringify(rd) + '}',
                                                         dataType: "json",
                                                         contentType: "application/json; chartset=uft-8",
                                                         success: function (Responses) {
                                                             if (Responses != null) {
-                                                                if (Responses.varpointaddTG > 0) {
+                                                                if (Responses.VarcontaminacionCribado > 0) {
 
-                                                                    var x = Responses.varpointaddFechaTG,
-                                                                        y = Responses.varpointaddTG;
+                                                                    var x = Responses.VarfechaCribado,
+                                                                        y = Responses.VarcontaminacionCribado,
+                                                                        z=[5,0];
 
-                                                                    series.addPoint([ x, y ]);
+                                                                    series.addPoint([x, y]);
+                                                                    series1.columnrange([z]);
+                                                                    
+
+
 
                                                                 }
                                                             }
                                                         },
                                                     });
-                                                }, 10000);
+                                                }, 5000);
                                         }
                                     }
-                           },
-                           title: {
-                               text: 'Tamaño De Grano'
-                           },
-                           accessibility: {
-                               announceNewData: {
-                                   enabled: true                                  
-                               }
-                           },
-                           credits: {
-                               enabled: false
-                           },
-                           xAxis: {                               
-                               type: 'category',
-                               labels: {
-                                   rotation: 45,
-                                   style: { color: 'Black' }
-                               }
-                           },
-                           yAxis: {
-                               title: {
-                                   text: 'Tamaño Del Grano'
-                               }
+                                },
+                            title: {
+                                text: 'Contaminación'
+                            },
+                            credits: {
+                                enabled: false
+                            },
+                            xAxis: {
+                                type: 'category',
+                                labels: {
+                                    rotation: 40,
+                                    style: { color: 'Black' }
+                                }
+                            },
+                            yAxis: {
+                                title: {
+                                    text: null
+                                }
+                            },
+                            tooltip: {
+                                crosshairs: true,
+                                shared: true,
+                                valueSuffix: 'Contaminación:'
 
-                           },
-                           legend: {
-                               enabled: false
-                           },
-                           plotOptions: {
-                               series: {
-                                   borderWidth: 10,
-                                   dataLabels: {
-                                       enabled: true,
-                                       format: '{point.y:.1f} AFS'
-                                   }
-                               }
-                           },
 
-                           series: [
-                               {
-                                   name: ' AFS',
-                                   colorByPoint: true,
-                                   data: (function () {
+                            },
 
-                                       var data = [],                                         
-                                           dat = Response.lstTamanoTG,
-                                       fec = Response.lstFechaTG;                                       
-                                      
-                                       for (var i = 0; i < dat.length; i++) {
-                                           
-                                               data.push({
-                                                   name: fec[i],
-                                                   y: dat[i]
-                                               });                                         
-                                           
-                                       }
-                                       return data;
-                                   }())
-                                   
-                                       
-                               }
-                           ]
-                       });
+                            series: [{
+                                name: 'Contaminacion',
+                                data: (function () {
+                                        var data = [],
+                                            dat = Response.lstcontaminacionSM,
+                                            fec = Response.lstfechasm;
+                                        for (var i = 0; i < dat.length; i++) {
+                                            data.push({
+                                                name: fec[i],
+                                                y: dat[i]
+                                            });
+                                        }
+                                        return data;
+                                    }()),
+                                zIndex: 1,
+                                marker: {
+                                    fillColor: 'white',
+                                    lineWidth: 2,
+                                    lineColor: Highcharts.getOptions().colors[0]
+                                }
+                            }, {
+                                name: 'Range',
+                                data: RangCont,
+                                    type: 'arearange',
+                                    lineWidth: 0,
+                                    linkedTo: ':previous',
+                                    color: Highcharts.getOptions().colors[0],
+                                    fillOpacity: 0.3,
+                                    zIndex: 0,
+                                    marker: {
+                                        enabled: false
+                                    }
+                                } ]
+                        });
+
+
+
+
+
+
 
 
                    } else {
-
                        alert('NULO');
+                       $("#lblContaminacionSM").html("0%");
+                       $("#lblParticulasSM").html("0 AFS");
+                       $("#lblFechaSM").html("///");
                    }
                },
            });
     }
 </script>
+
 

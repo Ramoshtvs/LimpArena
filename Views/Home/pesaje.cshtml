@@ -139,7 +139,7 @@
 
                         if (rd.Fecha == fechaActual) {
 
-                                Highcharts.chart('Grafpuntos', {
+                            Highcharts.chart('Grafpuntos', {
                                 chart: {
                                     type: 'spline',
                                     animation: Highcharts.svg,
@@ -161,8 +161,8 @@
                                                             if (Responses != null) {
                                                                 if (Responses.Varpeso > 0) {
 
-                                                                    var x = (new Date()).getTime(),
-                                                                    y = Responses.Varpeso;
+                                                                    var x = Responses.VarFechaPeso,
+                                                                        y = Responses.Varpeso;
 
                                                                     series.addPoint([x, y],true, true);
 
@@ -181,39 +181,22 @@
 
                                 title: {
                                     text: 'Pesaje Diario'
-                                },
-
-                                accessibility: {
-                                    announceNewData: {
-                                        enabled: true,
-                                        minAnnounceInterval: 15000,
-                                        announcementFormatter: function (allSeries, newSeries, newPoint) {
-                                            if (newPoint) {
-                                                return 'New point added. Value: ' + newPoint.y;
-                                            }
-                                            return false;
-                                        }
-                                    }
-                                    },
-                                    credits: {
-                                        enabled: false
-                                    },
-
-                                xAxis: {
-                                    type: 'datetime',
-                                    tickPixelInterval: 1000//tiempo comlocar el punto
-                                },
-
-                                yAxis: {
-                                    title: {
-                                        text: 'Kilogramos'
-                                    },
-                                    plotLines: [{
-                                        value: 0,
-                                        width: 1,
-                                        color: '#808080'
-                                    }]
-                                },
+                            },
+                            credits: {
+                                enabled: false
+                            },
+                            xAxis: {
+                                type: 'category',
+                                labels: {
+                                    rotation: 40,
+                                    style: { color: 'Black' }
+                                }
+                            },
+                            yAxis: {
+                                title: {
+                                    text: 'Kilogramos'
+                                }
+                            },
 
                                 tooltip: {
                                     headerFormat: '<b>{series.name}</b><br/>',
@@ -223,35 +206,26 @@
                                 legend: {
                                     enabled: false
                                 },
-
                                 exporting: {
                                     enabled: false
                                 },
-
                                 series: [{
                                     name: 'Peso',
                                     data: (function () {
-
                                         var data = [],
-                                            time = (new Date()).getTime(),
-                                            i,
-                                            j = 0,
-                                            dat = Response.peso;
-                                        var longitud = dat.length;
+                                            dat = Response.peso,
+                                            fec = Response.fecha;
 
-                                        for (i = -19; i <= 0; i += 1) {
-                                            if (j< longitud) {
+                                        for (var i = 0; i < dat.length; i++) {
                                                 data.push({
-                                                    x: time + i * 1000,
-                                                    y: dat[j]
+                                                    name: fec[i],
+                                                    y: dat[i]
                                                 });
-                                                j++;
-                                            }
                                         }
                                         return data;
                                     }())
                                 }]
-                                });
+                        });
 
                         } else {
 
@@ -286,7 +260,7 @@
                                 },
 
                                 xAxis: {
-                                    categories: Response.fecha,
+                                    categories: Response.fechaL,
                                     labels: {
                                         rotation: 45,
                                         style: { color: 'Black' }
@@ -318,7 +292,7 @@
                                 },
                                 series: [
                                     {
-                                        name: 'Peso',                                        
+                                        name: 'Peso',
                                         data: Response.peso
 
                                     }

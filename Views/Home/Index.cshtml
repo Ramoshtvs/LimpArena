@@ -88,6 +88,12 @@
 
     function chart() {
 
+        var actual = new Date();
+        var daia = ("0" + (actual.getDate())).slice(-2);
+        var mese = ("0" + (actual.getMonth() + 1)).slice(-2);
+        var anio = actual.getFullYear();
+        var fechaActual = anio + "-" + mese + "-" + daia;
+
             var rd = {};
             rd.Fecha =0;
 
@@ -117,116 +123,199 @@
 
                         /*Grafica pesaje*/
                         Highcharts.chart('pesa', {
-
-                            title: {
-                                text: ''
-                            },
-                            xAxis: {
-                                categories: Response.indexFechaPesaje,
-                                labels: {
-                                    rotation: 45,
-                                    style: { color: 'Black' }
-                                }
-                            },
-                            chart: {
-                                backgroundColor: 'transparent',
+                                chart: {
+                                    type: 'spline',
+                                    animation: Highcharts.svg,
+                                    marginRight: 10,
                                 events: {
-                                    click: function () {
+                                        click: function () {
                                         var url = '@Url.Action("pesaje","Home")';
                                         window.location.href = url;
-                                    }
-                                }
-                            },
+                                    },
+                                    load: function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function punto() {
+                                                    var rd = {};
+                                                    rd.Fecha = fechaActual;
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("ValidarPunto")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.Varpeso > 0) {
+                                                                    $("#UltimoP").html("ULTIMO: " + Responses.Varpeso + " KG");
+                                                                    var x = Responses.VarFechaPeso,
+                                                                        y = Responses.Varpeso;
 
-                            yAxis: {
+                                                                    series.addPoint([x, y]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 1000);
+                                        }
+                                    }
+                                },
+
+                                time: {
+                                    useUTC: false
+                                },
+
                                 title: {
-                                    text: 'Kilogramos',
-                                    style: {
-                                        color:'black'
-                                    }
-                                },
-                                labels: {
-                                    style: {
-                                        color: 'black'
-                                    }
-                                },
-                                type: 'logarithmic',
-                                minorTickInterval: 0.1,
-                                accessibility: {
-                                    rangeDescription: 'Range: 0.1 to 1000'
-                                }
-                            },
-
-                            credits: {
-                                enabled:false
-                            },
-
-                            series: [{
-                                data: Response.indexPesaje,
-                                pointStart: 1,
-                                name: 'peso',
-                                tooltip: { valueSuffix: 'KG' },
-                                color: '#63DFC1'
-                            }]
-                        });
-                        /*Grafica Tamaño de grano*/
-                        Highcharts.chart('GrafTG', {
-                            chart: {
-                                type: 'column',
-                                events: {
-                                    click: function () {
-                                        var url = '@Url.Action("InspeccionTamañoGrano","Home")';
-                                        window.location.href = url;
-                                    }
-                                }
-                            },
-                            title: {
-                                text: 'Inspección Tamaño Del Grano'
-                            },
-                            accessibility: {
-                                announceNewData: {
-                                    enabled: true
-                                }
+                                    text: 'Pesaje Diario'
                             },
                             credits: {
                                 enabled: false
                             },
                             xAxis: {
-                                categories: Response.indexFechaInspeccion,
+                                type: 'category',
                                 labels: {
-                                    rotation: 45,
+                                    rotation: 40,
                                     style: { color: 'Black' }
                                 }
                             },
                             yAxis: {
                                 title: {
-                                    text: 'Tamaño Del Grano'
-                                }
-
-                            },
-                            legend: {
-                                enabled: false
-                            },
-                            plotOptions: {
-                                series: {
-                                    borderWidth: 0,
-                                    dataLabels: {
-                                        enabled: true,
-                                        format: '{point.y:.1f} AFS'
-                                    }
+                                    text: 'Kilogramos'
                                 }
                             },
 
-                            series: [
-                                {
-                                    name: ' AFS',
-                                    colorByPoint: true,
-                                    data: Response.indexInspeccion
-                                }
-                            ]
+                                tooltip: {
+                                    headerFormat: '<b>{series.name}</b><br/>',
+                                    pointFormat: '{point.x:%Y-%m-%d %H:%M:%S}<br/>{point.y:.2f}'
+                                },
+
+                                legend: {
+                                    enabled: false
+                                },
+                                exporting: {
+                                    enabled: false
+                                },
+                                series: [{
+                                    name: 'Peso',
+                                    data: (function () {
+                                        var data = [],
+                                            dat = Response.indexPesaje,
+                                            fec = Response.indexFechaPesaje;
+
+                                        for (var i = 0; i < dat.length; i++) {
+                                                data.push({
+                                                    name: fec[i],
+                                                    y: dat[i]
+                                                });
+                                        }
+                                        return data;
+                                    }())
+                                }]
                         });
+
+                        /*Grafica Tamaño de grano*/
+                        Highcharts.chart('GrafTG', {
+                           chart: {
+                                type: 'column',
+                                events: {
+                                     click: function p() {
+                                        var url = '@Url.Action("InspeccionTamañoGrano","Home")';
+                                        window.location.href = url;
+                                    },
+                                        load: function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function barra() {
+                                                    var rd = {};
+                                                    rd.Fecha = $("#fecha").val();
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("validarBarras")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.varpointaddTG > 0) {
+
+                                                                    var x = Responses.varpointaddFechaTG,
+                                                                        y = Responses.varpointaddTG;
+
+                                                                    series.addPoint([ x, y ]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 10000);
+                                        }
+                                }
+                           },
+                           title: {
+                               text: 'Tamaño De Grano'
+                           },
+                           accessibility: {
+                               announceNewData: {
+                                   enabled: true
+                               }
+                           },
+                           credits: {
+                               enabled: false
+                           },
+                           xAxis: {
+                               type: 'category',
+                               labels: {
+                                   rotation: 40,
+                                   style: { color: 'Black' }
+                               }
+                           },
+                           yAxis: {
+                               title: {
+                                   text: 'Tamaño Del Grano'
+                               }
+
+                           },
+                           legend: {
+                               enabled: false
+                           },
+                           plotOptions: {
+                               series: {
+                                   borderWidth: 10,
+                                   dataLabels: {
+                                       enabled: true,
+                                       format: '{point.y:.1f} AFS'
+                                   }
+                               }
+                           },
+
+                           series: [
+                               {
+                                   name: ' AFS',
+                                   colorByPoint: true,
+                                   data: (function () {
+
+                                       var data = [],
+                                           dat = Response.indexInspeccion,
+                                           fec = Response.indexFechaInspeccion;
+
+                                       for (var i = 0; i < dat.length; i++) {
+
+                                               data.push({
+                                                   name: fec[i],
+                                                   y: dat[i]
+                                               });
+
+                                       }
+                                       return data;
+                                   }())
+
+
+                               }
+                           ]
+                       });
                         /*Grafica tiempo ciclo*/
-                        Highcharts.chart('GrafTriturado', {
+                         Highcharts.chart('GrafTriturado', {
 
                             chart: {
                                 type: 'area',
@@ -235,27 +324,62 @@
                                 panKey: 'shift',
                                 scrollablePlotArea: {
                                     minWidth: 600
-                                },
+                                 },
+                                 click: function () {
+                                     var url = '@Url.Action("triturado", "Home")';
+                                     window.location.href = url;
+                                 },
                                 events: {
-                                    click: function () {
-                                        var url = '@Url.Action("triturado", "Home")';
-                                        window.location.href = url;
+                                        load: function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function punto() {
+                                                    var rd = {};
+                                                    rd.Fecha = fechaActual;
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("ValidarPuntoTiempo")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.VarUltimoTriturado > 0) {
+                                                                    $("#UltimoT").html("ULTIMO: " + Responses.VarUltimoTriturado + " Hrs");
+                                                                    var x = Responses.VarFechaUltimoT,
+                                                                        y = Responses.VarUltimoTriturado;
+
+                                                                    series.addPoint([x, y]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 1000);
+                                        }
                                     }
-                                }
+
                             },
                             title: {
-                                text: ''
+                                text: 'Tiempo Triturado'
                             },
                             credits: {
                                 enabled: false
                             },
+                            annotations: [{
+                                draggable: '',
+                                labelOptions: {
+                                    backgroundColor: 'rgba(255,255,255,0.5)',
+                                    verticalAlign: 'top',
+                                }
+                            }],
 
                             xAxis: {
-                                categories: Response.indexTiempo,
+                                type: 'category',
                                 labels: {
-                                    rotation: 45,
-                                    style: { color: 'Black' },
-                                    format: '{value} Hrs'
+                                    rotation: 40,
+                                    format: '{value}',
+                                    style: { color: 'Black' }
                                 },
 
                                 title: {
@@ -264,15 +388,14 @@
                             },
 
                             yAxis: {
-                                startOnTick: true,
-                                endOnTick: false,
-                                maxPadding: 0.35,
+
                                 title: {
                                     text: null
                                 },
                                 labels: {
                                     format: '{value} m'
                                 }
+
                             },
 
                             tooltip: {
@@ -280,19 +403,30 @@
                                 pointFormat: 'Tiempo Ciclo: {point.y} Hrs',
                                 shared: true
                             },
+
                             legend: {
                                 enabled: false
                             },
+
                             series: [{
-                                data: Response.indexTiempo,
+                                name: 'Tiempo Ciclo',
+                                data:(function () {
+                                    var data = [],
+                                        dat = Response.indexTiempo,
+                                        fec = Response.indexFechaTiempo;
+
+                                    for (var i = 0; i < dat.length; i++) {
+                                        data.push({
+                                            name: fec[i],
+                                            y: dat[i]
+                                        });
+                                    }
+                                    return data;
+                                }()),
                                 lineColor: Highcharts.getOptions().colors[1],
                                 color: Highcharts.getOptions().colors[2],
                                 fillOpacity: 0.5,
-                                name: 'Elevation',
-                                marker: {
-                                    enabled: false
-                                },
-                                threshold: null
+
                             }]
 
                         });

@@ -16,8 +16,40 @@ namespace LimpArena.Controllers
 
         arenaEntities db = new Models.arenaEntities();
         [HttpPost]
+        public ActionResult validarBarras()
+        {
+            variables objvariables = new variables();
+            DateTime fecha1 = DateTime.Now;
+            DateTime fecha = DateTime.Now;
+
+            var fechaHprimero = Convert.ToDateTime(fecha1.ToString("yyyy-MM-dd 00:00:00"));
+            var fechaHultimo = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            var dataTG = db.InspeccionTamañoGrano.Where(x =>
+
+            x.Fecha.Value >= fechaHprimero && x.Fecha.Value <= fechaHultimo).ToList();
+
+            int cont = dataTG.Count;
+
+            if (cont > VariablesContador.contadorInspTGrano)
+            {
+                VariablesContador.contadorInspTGrano = cont;
+                var validarPunto = db.InspeccionTamañoGrano.OrderByDescending(x => x.Id).FirstOrDefault();
+
+                foreach (var item in dataTG)
+                {
+                    objvariables.varpointaddTG = Convert.ToDecimal(item.TamanoGrano);
+                    objvariables.varpointaddFechaTG = Convert.ToString(item.Fecha.Value.ToLongTimeString());
+                }
+
+            }
+            return Json(objvariables, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
         public ActionResult Index(Pesaje ps, InspeccionTamañoGrano it, Triturado tr, Almacenamiento al,Almacenamiento_Inicial an)
         {
+            VariablesContador.contadorInspTGrano = 0;
+
             variables objvariables = new variables();
 
             List<decimal> listIndexPeso = new List<decimal>();
@@ -25,35 +57,50 @@ namespace LimpArena.Controllers
             List<decimal> listIndexInspeccion = new List<decimal>();
             List<string> listIndexFechaInspeccion = new List<string>();
             List<decimal> listIndexTiempo = new List<decimal>();
+            List<string> lstIndexFechaTiempo = new List<string>();
             List<decimal> lstIndexAlmacenamientoF = new List<decimal>();
             List<string> lstIndexpallet = new List<string>();
 
             DateTime fechapeso = DateTime.Now;
+            DateTime fecha = DateTime.Now;
+            DateTime fecha1 = DateTime.Now;
 
-            var peso = db.Pesaje.Where(x => x.Fecha.Value.Day >= fechapeso.Day && x.Fecha.Value.Day <= fechapeso.Day).ToList();
+            var fechaHprimero = Convert.ToDateTime(fecha1.ToString("yyyy-MM-dd 00:00:00"));
+            var fechaHultimo = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            
+            var dataTG = db.InspeccionTamañoGrano.Where(x => x.Fecha.Value >= fechaHprimero && x.Fecha.Value <= fechaHultimo).ToList();           
+            
+            var peso = db.Pesaje.Where(x => x.Fecha.Value >= fechaHprimero && x.Fecha.Value <= fechaHultimo).ToList();
+
+
             var ultimopeso = peso.OrderByDescending(x => x.Id).FirstOrDefault();
             var Inspeccion = db.InspeccionTamañoGrano.Where(x => x.Fecha.Value.Day >= fechapeso.Day && x.Fecha.Value.Day <= fechapeso.Day).ToList();
-            var Tiempo = db.Triturado.Where(x => x.Fecha.Value.Day >= fechapeso.Day && x.Fecha.Value.Day <= fechapeso.Day).ToList();
+            
+            var Tiempo = db.Triturado.Where(x => x.Fecha.Value>= fechaHprimero && x.Fecha.Value <= fechaHultimo).ToList();
+
             var ultimoTiempo = Tiempo.OrderByDescending(x => x.Id).FirstOrDefault();
             var total = db.Almacenamiento.Where(x => x.FechaSalida == null).ToList();
             var almacenamiento = db.Almacenamiento_Inicial.OrderByDescending(x => x.Id).FirstOrDefault();
 
+            VariablesContador.contadorInspTGrano = dataTG.Count;
+
             decimal Acomulado = 0;
 
-            listIndexFechaPeso.Add("");
+            
             foreach (var item in peso)
             {
                 listIndexPeso.Add(Convert.ToDecimal(item.Peso));
-                listIndexFechaPeso.Add(item.Fecha.Value.ToShortDateString());
+                listIndexFechaPeso.Add(item.Fecha.Value.ToLongTimeString());
             }
-            foreach (var item in Inspeccion)
+            foreach (var item in dataTG)
             {
                 listIndexInspeccion.Add(Convert.ToDecimal(item.TamanoGrano));
-                listIndexFechaInspeccion.Add(item.Fecha.Value.ToShortDateString());
+                listIndexFechaInspeccion.Add(item.Fecha.Value.ToLongTimeString());
             }
             foreach (var item in Tiempo)
             {
                 listIndexTiempo.Add(Convert.ToDecimal(item.TiempoCiclo));
+                lstIndexFechaTiempo.Add(item.Fecha.Value.ToLongTimeString());
             }
             foreach (var item in total)
             {
@@ -65,9 +112,13 @@ namespace LimpArena.Controllers
 
             objvariables.indexPesaje = listIndexPeso;
             objvariables.indexFechaPesaje = listIndexFechaPeso;
+
             objvariables.indexInspeccion = listIndexInspeccion;
             objvariables.indexFechaInspeccion = listIndexFechaInspeccion;
+            
             objvariables.indexTiempo = listIndexTiempo;
+            objvariables.indexFechaTiempo = lstIndexFechaTiempo;
+
             objvariables.IndexAlmacenamientoF = lstIndexAlmacenamientoF;
             objvariables.Indexpallet = lstIndexpallet;
             objvariables.VarIndexAlmacenamiento = Acomulado;
@@ -133,16 +184,105 @@ namespace LimpArena.Controllers
                 foreach (var item in peso1)
                 {
                     objvariables.Varpeso = Convert.ToDecimal(item.Peso);
-                    objvariables.VarFechaPeso = Convert.ToString(item.Fecha.Value.ToShortTimeString());                   
+                    objvariables.VarFechaPeso = Convert.ToString(item.Fecha.Value.ToLongTimeString());                   
                 }
                 
             }            
 
             return Json(objvariables, JsonRequestBehavior.AllowGet);
         }
+        public ActionResult ValidarPuntoTiempo(Triturado rd)
+        {
+            variables objvariables = new variables();
+
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            var tiempo = db.Triturado.Where(x => x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaf).ToList();
+
+            int i = tiempo.Count;
+
+            if (i > VariablesContador.contadorTimpTrituraod)
+            {
+                VariablesContador.contadorTimpTrituraod = i;
+                var validarPunto = db.Triturado.OrderByDescending(x => x.Id).FirstOrDefault();
+               
+                objvariables.VarUltimoTriturado = Convert.ToDecimal(validarPunto.TiempoCiclo);
+                objvariables.VarFechaUltimoT = Convert.ToString(validarPunto.Fecha.Value.ToLongTimeString());
+
+
+
+                
+                DateTime Hora = Convert.ToDateTime(validarPunto.Fecha);
+                objvariables.horaTriturado = Convert.ToString(Hora);
+                objvariables.contaminacionT = Convert.ToDecimal(validarPunto.Contaminacion);
+                objvariables.granoT = Convert.ToInt32(validarPunto.TamañoGrano);
+            }
+
+            return Json(objvariables, JsonRequestBehavior.AllowGet);
+        }
+        public ActionResult ValidarPuntoSM(SeparacionMagneticos rd)
+        {
+            variables objvariables = new variables();
+
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            var separacion = db.SeparacionMagneticos.Where(x => x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaf).ToList();
+
+            int i = separacion.Count;
+
+            if (i > VariablesContador.contadorSeparacionM)
+            {
+                VariablesContador.contadorSeparacionM = i;
+                var validarPunto = db.SeparacionMagneticos.OrderByDescending(x => x.Id).FirstOrDefault();
+
+                objvariables.VarcontaminacionCribado = Convert.ToDecimal(validarPunto.Contaminacion);
+                objvariables.VarfechaCribado = Convert.ToString(validarPunto.Fecha.Value.ToLongTimeString());
+                objvariables.VarResiduoCribadoU = Convert.ToDecimal(validarPunto.Particulas);
+
+            }
+
+                return Json(objvariables, JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost]
+        public ActionResult ValidarPuntoQR(Pesaje rd)
+        {
+            variables objvariables = new variables();
+
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            var Data = db.QuemadodeRecina.Where(x => x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaf).ToList();
+
+            int i = Data.Count;
+
+            if (i > VariablesContador.contadorQuemadoResinas)
+            {
+                VariablesContador.contadorQuemadoResinas = i;
+                var validarQR = db.QuemadodeRecina.OrderByDescending(x => x.Id).FirstOrDefault();
+
+                objvariables.VaraddFecha = Convert.ToString(validarQR.Fecha.Value.ToLongTimeString());
+                objvariables.VaraddTemArena = Convert.ToDecimal(validarQR.TempArena);
+                objvariables.VaraddTemExt = Convert.ToDecimal(validarQR.TempExterna);
+                objvariables.VaraddTemInt = Convert.ToDecimal(validarQR.TempInterna);
+            }
+
+            return Json(objvariables, JsonRequestBehavior.AllowGet);
+        }
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
+            List<decimal[]> datosF = new List<decimal[]>();// arrayList 
+            List<decimal> rangosContaminacion = new List<decimal>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                rangosContaminacion.Add(0);
+                rangosContaminacion.Add(5);
+
+                decimal[] array = rangosContaminacion.ToArray();
+                datosF.Add(array);
+                rangosContaminacion.Clear();
+            }
+
+            ViewBag.rango = datosF;
 
             return View();
         }
@@ -153,20 +293,23 @@ namespace LimpArena.Controllers
             variables objvariables = new variables();
             List<decimal> listPeso = new List<decimal>();
             List<string> listFecha = new List<string>();
+            List<string> listFechaL = new List<string>();
             DateTime fecha = Convert.ToDateTime(rd.Fecha);
             var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
             var peso = db.Pesaje.Where(x => x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaf).ToList();
-
+            
             VariablesContador.contadorPesaje = peso.Count;
             
             foreach (var item in peso)
             {
                 listPeso.Add(Convert.ToDecimal(item.Peso));
-                listFecha.Add(item.Fecha.Value.ToShortDateString());
+                listFecha.Add(item.Fecha.Value.ToLongTimeString());
+                listFechaL.Add(item.Fecha.Value.ToShortDateString());
             }
 
             objvariables.peso = listPeso;
             objvariables.fecha = listFecha;
+            objvariables.fechaL = listFechaL;
             return Json(objvariables, JsonRequestBehavior.AllowGet);
 
         }
@@ -217,8 +360,7 @@ namespace LimpArena.Controllers
             return Json(objvariables, JsonRequestBehavior.AllowGet);
 
 
-        }    
-       
+        }           
         [HttpPost]
         public ActionResult almacenamiento(Almacenamiento_Inicial rd)
         {
@@ -239,29 +381,40 @@ namespace LimpArena.Controllers
         [HttpPost]
         public ActionResult triturado(Triturado rd)
         {
+            VariablesContador.contadorTimpTrituraod = 0;
             variables objvariables = new variables();
 
             List<decimal> Tiempot = new List<decimal>();
             List<string> Fechat = new List<string>();
+            List<string> FechatL = new List<string>();
             List<int> id = new List<int>();
             // var tiempo = db.Triturado.OrderByDescending(x => x.Id).Take(10).ToList(); //Tomando los ultimos 10 datos            
             var ultimo = db.Triturado.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
-            DateTime Hora = Convert.ToDateTime(ultimo.Fecha);
-            var datos = db.Triturado.Where(x => x.Fecha.Value.Day >= rd.Fecha.Value.Day && x.Fecha.Value.Day <= rd.Fecha.Value.Day).ToList();
+
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+
+            
+            var datos = db.Triturado.Where(x => x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaf).ToList();
+            VariablesContador.contadorTimpTrituraod = datos.Count;
 
             id.Add(0);
             foreach (var item in datos)
             {
                 Tiempot.Add(Convert.ToDecimal(item.TiempoCiclo));
-                Fechat.Add(item.Fecha.Value.ToShortDateString());
+                Fechat.Add(item.Fecha.Value.ToLongTimeString());
+                FechatL.Add(item.Fecha.Value.ToShortDateString());
+                
                 id.Add(item.Id);
             }
 
             objvariables.tiempoCiclo = Tiempot;
             objvariables.fechaTriturado = Fechat;
-            objvariables.idTriturado = id;
+            objvariables.fechaTrituradoL = FechatL;
 
+            objvariables.idTriturado = id;
             objvariables.tiempoTriturado = Convert.ToDecimal(ultimo.TiempoCiclo);
+            DateTime Hora = Convert.ToDateTime(ultimo.Fecha);
             objvariables.horaTriturado = Convert.ToString(Hora);
             objvariables.contaminacionT = Convert.ToDecimal(ultimo.Contaminacion);
             objvariables.granoT = Convert.ToInt32(ultimo.TamañoGrano);
@@ -274,24 +427,26 @@ namespace LimpArena.Controllers
         [HttpPost]
         public ActionResult Cribado(Cribado rd)
         {
+            VariablesContador.contadorcribado = 0;
             variables objvariables = new variables();
             List<decimal> contamCribado = new List<decimal>();
             List<decimal> residCribado = new List<decimal>();
             List<string> fechaCribado = new List<string>();
 
-            var ultimo = db.Cribado.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
-            DateTime Hora = Convert.ToDateTime(ultimo.Fecha);
-            var data = db.Cribado.Where(x =>
-            x.Fecha.Value.Day >= rd.Fecha.Value.Day
-            &&
-            x.Fecha.Value.Day <= rd.Fecha.Value.Day).ToList();
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaTG = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
 
+            var ultimo = db.Cribado.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato 
+
+            var data = db.Cribado.Where(x => x.Fecha.Value >= rd.Fecha  && x.Fecha.Value <= fechaTG).ToList();
+
+            VariablesContador.contadorcribado = data.Count;
 
             foreach (var item in data)
             {
                 contamCribado.Add(Convert.ToDecimal(item.Contaminacion));
                 residCribado.Add(Convert.ToDecimal(item.residuo));
-                fechaCribado.Add(item.Fecha.Value.ToShortDateString());
+                fechaCribado.Add(item.Fecha.Value.ToLongTimeString());
             }
 
             objvariables.contaminacionC = contamCribado;
@@ -299,6 +454,9 @@ namespace LimpArena.Controllers
             objvariables.fechaC = fechaCribado;
 
             objvariables.ResiduoCribado = Convert.ToDecimal(ultimo.residuo);
+            
+            DateTime Hora = Convert.ToDateTime(ultimo.Fecha);
+
             objvariables.fechaCribado = Convert.ToString(Hora);
             objvariables.contaminacionCribado = Convert.ToDecimal(ultimo.Contaminacion);
             objvariables.granoCribado = Convert.ToInt32(ultimo.TamanoGrano);
@@ -309,9 +467,37 @@ namespace LimpArena.Controllers
         {
             return View();
         }
+
+        [HttpPost]
+        public ActionResult validarBarrascribado()
+        {
+            variables objvariables = new variables();
+            DateTime fecha1 = DateTime.Now;
+            DateTime fecha = DateTime.Now;
+
+            var fechaHprimero = Convert.ToDateTime(fecha1.ToString("yyyy-MM-dd 00:00:00"));
+            var fechaHultimo = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            var dataCribado = db.Cribado.Where(x =>
+            x.Fecha.Value >= fechaHprimero && x.Fecha.Value <= fechaHultimo).ToList();
+
+            int cont = dataCribado.Count;
+
+            if (cont > VariablesContador.contadorcribado)
+            {
+                VariablesContador.contadorcribado = cont;
+                var validarBarra = db.Cribado.OrderByDescending(x => x.Id).FirstOrDefault();
+
+                objvariables.newaddContaminacion = Convert.ToDecimal(validarBarra.Contaminacion);
+                objvariables.newaddResiduo = Convert.ToDecimal(validarBarra.residuo);
+                objvariables.newaddfechaCribado = Convert.ToString(validarBarra.Fecha.Value.ToLongTimeString());
+            }
+            return Json(objvariables, JsonRequestBehavior.AllowGet);
+        }
+
         [HttpPost]
         public ActionResult separacionMagneticos(SeparacionMagneticos rd)
         {
+            VariablesContador.contadorSeparacionM = 0;
             variables objvariables = new variables();
             List<decimal> lstContamSM = new List<decimal>();
             List<int> lstPartiSM = new List<int>();
@@ -322,19 +508,21 @@ namespace LimpArena.Controllers
             List<decimal> rangosContaminacion = new List<decimal>();
             List<decimal[]> datosF = new List<decimal[]>();// arrayList           
 
-            var ultimoSM = db.SeparacionMagneticos.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
-            DateTime Hora = Convert.ToDateTime(ultimoSM.Fecha);
-            var data = db.SeparacionMagneticos.Where(x =>
-            x.Fecha.Value.Day >= rd.Fecha.Value.Day
-            &&
-            x.Fecha.Value.Day <= rd.Fecha.Value.Day).ToList();
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
 
+            var ultimoSM = db.SeparacionMagneticos.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
+            DateTime Hora = Convert.ToDateTime(ultimoSM.Fecha);            
+
+            var data = db.SeparacionMagneticos.Where(x => x.Fecha.Value >= rd.Fecha.Value && x.Fecha.Value <= fechaf).ToList();
+
+            VariablesContador.contadorSeparacionM = data.Count;
 
             foreach (var item in data)
             {
                 lstContamSM.Add(Convert.ToDecimal(item.Contaminacion));
                 lstPartiSM.Add(Convert.ToInt32(item.Particulas));
-                lstFechaSM.Add(item.Fecha.Value.ToShortDateString());
+                lstFechaSM.Add(item.Fecha.Value.ToLongTimeString());
                 lstMinSM.Add(0);
                 lstMaxSmResiduo.Add(60);
 
@@ -357,33 +545,66 @@ namespace LimpArena.Controllers
             objvariables.BarMinSM = lstMinSM;
 
             objvariables.BarMINSmContaminacion = datosF;
-
+            ViewBag.rango = datosF;
 
             return Json(objvariables, JsonRequestBehavior.AllowGet);
         }
         public ActionResult separacionMagneticos()
         {
+            
+
             return View();
+        }
+        public ActionResult ValidarPuntoSC(Pesaje rd)
+        {
+            variables objvariables = new variables();
+
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+            var data = db.CentrifugadorCarga.Where(x => x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaf).ToList();
+
+            int i = data.Count;
+
+            if (i > VariablesContador.contadorSentrifugadoCargas)
+            {
+                VariablesContador.contadorSentrifugadoCargas = i;
+                var validarPunto = db.CentrifugadorCarga.OrderByDescending(x => x.Id).FirstOrDefault();
+                objvariables.varTempSC = Convert.ToDecimal(validarPunto.TemperaturaAgua);
+                objvariables.varfechaSC = Convert.ToString(validarPunto.Fecha.Value.ToLongTimeString());
+
+            }
+
+            return Json(objvariables, JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult SentrifugadodeCargas(CentrifugadorCarga rd)
         {
+            VariablesContador.contadorSentrifugadoCargas = 0;
             variables objvariables = new variables();
             List<string> lstFechaSC = new List<string>();
+            List<string> lstFechaSCL = new List<string>();
             List<decimal> lstTemperatura = new List<decimal>();
 
-            var data = db.CentrifugadorCarga.Where(x => x.Fecha.Value.Day >= rd.Fecha.Value.Day &&
-            x.Fecha.Value.Day <= rd.Fecha.Value.Day).ToList();
+
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaTG = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));            
+
+            var data = db.CentrifugadorCarga.Where(x => 
+            x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaTG).ToList();
+
+            VariablesContador.contadorSentrifugadoCargas = data.Count;
 
             foreach (var item in data)
             {
-                lstFechaSC.Add(Convert.ToString(item.Fecha.Value.ToShortDateString()));
+                lstFechaSC.Add(Convert.ToString(item.Fecha.Value.ToLongTimeString()));
+                lstFechaSCL.Add(Convert.ToString(item.Fecha.Value.ToShortDateString()));
                 lstTemperatura.Add(Convert.ToDecimal(item.TemperaturaAgua));
             }
             objvariables.lstfechaSC = lstFechaSC;
             objvariables.lstTemperaturaSC = lstTemperatura;
+            objvariables.lstfechaSCL = lstFechaSCL;
 
-            List<SentrifugadoC> datos = new List<SentrifugadoC>();
+        List<SentrifugadoC> datos = new List<SentrifugadoC>();
 
             foreach (var item in data)
             {
@@ -413,8 +634,10 @@ namespace LimpArena.Controllers
         [HttpPost]
         public ActionResult InspeccionTamañoGrano(InspeccionTamañoGrano rd)
         {
+            VariablesContador.contadorInspTGrano = 0;
             variables objvariables = new variables();
             List<String> lstFechaITG = new List<String>();
+            List<String> lstFechaITGH = new List<String>();
             List<decimal> lstITM = new List<decimal>();
 
             DateTime fecha = Convert.ToDateTime(rd.Fecha);
@@ -429,40 +652,15 @@ namespace LimpArena.Controllers
             {
                 lstFechaITG.Add(Convert.ToString(item.Fecha.Value.ToLongTimeString()));
                 lstITM.Add(Convert.ToDecimal(item.TamanoGrano));
+                lstFechaITGH.Add(Convert.ToString(item.Fecha.Value.ToShortDateString()));
             }
 
             objvariables.lstFechaTG = lstFechaITG;
             objvariables.lstTamanoTG = lstITM;
-
+            objvariables.lstFechaTGH = lstFechaITGH;
             return Json(objvariables, JsonRequestBehavior.AllowGet);
-        }
-        [HttpPost]
-        public ActionResult validarBarras(InspeccionTamañoGrano rd)
-        {
-            variables objvariables = new variables();
-
-            DateTime fecha = Convert.ToDateTime(rd.Fecha);
-            var fechaTG = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
-            var dataTG = db.InspeccionTamañoGrano.Where(x =>
-
-            x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaTG).ToList();
-
-            int cont = dataTG.Count;
-
-            if (cont > VariablesContador.contadorInspTGrano)
-            {
-                VariablesContador.contadorInspTGrano = cont;
-                var validarPunto = db.InspeccionTamañoGrano.OrderByDescending(x => x.Id).FirstOrDefault();
-
-                foreach (var item in dataTG)
-                {
-                    objvariables.varpointaddTG = Convert.ToDecimal(item.TamanoGrano);
-                    objvariables.varpointaddFechaTG= Convert.ToString(item.Fecha.Value.ToLongTimeString());
-                }
-
-            }
-            return Json(objvariables, JsonRequestBehavior.AllowGet);
-        }
+        }      
+       
         public ActionResult InspeccionTamañoGrano()
         {
 
@@ -471,19 +669,30 @@ namespace LimpArena.Controllers
         [HttpPost]
         public ActionResult QuemadoResina(QuemadodeRecina rd)
         {
+            VariablesContador.contadorQuemadoResinas = 0;
             variables objvariables = new variables();
             List<String> lstFecha = new List<String>();
+            List<String> lstFechaL = new List<String>();
             List<decimal> lstTempInterna = new List<decimal>();
             List<decimal> lstTempExterna = new List<decimal>();
             List<decimal> lstTempArena = new List<decimal>();
             List<decimal> lstCalibracion = new List<decimal>();
-            var ultimoQR = db.QuemadodeRecina.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
-            var data = db.QuemadodeRecina.Where(x => x.Fecha.Value.Day >= rd.Fecha.Value.Day &&
-           x.Fecha.Value.Day <= rd.Fecha.Value.Day).ToList();
 
+            DateTime fecha = Convert.ToDateTime(rd.Fecha);
+            var fechaTG = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
+
+
+            var ultimoQR = db.QuemadodeRecina.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
+            var data = db.QuemadodeRecina.Where(x =>
+            x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaTG).ToList();
+
+
+
+            VariablesContador.contadorQuemadoResinas = data.Count;
             foreach (var item in data)
             {
-                lstFecha.Add(Convert.ToString(item.Fecha.Value.ToShortDateString()));
+                lstFecha.Add(Convert.ToString(item.Fecha.Value.ToLongTimeString()));
+                lstFechaL.Add(Convert.ToString(item.Fecha.Value.ToShortDateString()));
                 lstTempInterna.Add(Convert.ToDecimal(item.TempInterna));
                 lstTempExterna.Add(Convert.ToDecimal(item.TempExterna));
                 lstTempArena.Add(Convert.ToDecimal(item.TempArena));
@@ -495,6 +704,7 @@ namespace LimpArena.Controllers
             objvariables.lstTempArenaQR = lstTempArena;
             objvariables.lstCalibracionQR = lstCalibracion;
             objvariables.lstFechaQR = lstFecha;
+            objvariables.lstFechaQRL = lstFechaL;
 
             objvariables.VarTempInternaQR = Convert.ToDecimal(ultimoQR.TempInterna);
             objvariables.VarTempExternaQR = Convert.ToDecimal(ultimoQR.TempExterna);
@@ -749,6 +959,7 @@ namespace LimpArena.Controllers
             //1 page
             public List<decimal> peso { get; set; }
             public List<String> fecha { get; set; }
+            public List<String> fechaL { get; set; }
 
             //variables validar
             public decimal Varpeso { get; set; }
@@ -762,8 +973,11 @@ namespace LimpArena.Controllers
             //3 page
             public List<decimal> tiempoCiclo { get; set; }
             public List<String> fechaTriturado { get; set; }
+            public List<String> fechaTrituradoL { get; set; }
             public List<int> idTriturado { get; set; }
             public decimal tiempoTriturado { get; set; }
+            public decimal VarUltimoTriturado { get; set; }
+            public String VarFechaUltimoT { get; set; }
             public String horaTriturado { get; set; }
             public int granoT { get; set; }
             public decimal contaminacionT { get; set; }
@@ -773,8 +987,18 @@ namespace LimpArena.Controllers
             public List<String> fechaC { get; set; }
             public int granoCribado { get; set; }
             public decimal contaminacionCribado { get; set; }
+            public decimal newaddContaminacion { get; set; }
+            public decimal newaddResiduo { get; set; }
+            public string newaddfechaCribado { get; set; }
+
+            public decimal VarcontaminacionCribado { get; set; }
+            public decimal VarResiduoCribadoU { get; set; }
+            public String VarfechaCribado { get; set; }
+
             public decimal ResiduoCribado { get; set; }
             public String fechaCribado { get; set; }
+            public decimal VarResiduoCribado { get; set; }
+            
             //5 page
             public List<decimal> lstcontaminacionSM { get; set; }
             public List<int> lstparticulasSM { get; set; }
@@ -787,17 +1011,22 @@ namespace LimpArena.Controllers
             public List<decimal[]> BarMINSmContaminacion { get; set; }
             //6 page
             public List<String> lstfechaSC { get; set; }
+            public List<String> lstfechaSCL { get; set; }
             public List<decimal> lstTemperaturaSC { get; set; }
             public List<SentrifugadoC> lista { get; set; }
+            public decimal varTempSC { get; set; }
+            public string varfechaSC { get; set; }
             //7 page
 
             public List<decimal> lstTamanoTG { get; set; }
             public List<String> lstFechaTG { get; set; }
+            public List<String> lstFechaTGH { get; set; }
             public decimal varpointaddTG{ get; set; }
             public string varpointaddFechaTG { get; set; }
 
             ///8 page
             public List<String> lstFechaQR { get; set; }
+            public List<String> lstFechaQRL { get; set; }
             public List<decimal> lstTempInternaQR { get; set; }
             public List<decimal> lstTempExternaQR { get; set; }
             public List<decimal> lstTempArenaQR { get; set; }
@@ -807,6 +1036,12 @@ namespace LimpArena.Controllers
             public Decimal VarTempExternaQR { get; set; }
             public Decimal VarTempArenaQR { get; set; }
             public Decimal VarCalibracionQR { get; set; }
+
+            public string VaraddFecha { get; set; }
+            public decimal VaraddTemInt { get; set; }
+            public decimal VaraddTemExt { get; set; }
+            public decimal VaraddTemArena { get; set; }
+
             //9 page
 
             public decimal NvlTanqEnfriamento { get; set; }
@@ -843,6 +1078,7 @@ namespace LimpArena.Controllers
             public List<decimal> indexInspeccion { get; set; }
             public List<String> indexFechaInspeccion { get; set; }
             public List<decimal> indexTiempo { get; set; }
+            public List<string> indexFechaTiempo { get; set; }
             public List<decimal> IndexAlmacenamientoF { get; set; }
             public List<String> Indexpallet { get; set; }           
             public decimal VarIndexAlmacenamiento { get; set; }
