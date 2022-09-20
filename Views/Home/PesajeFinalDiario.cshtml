@@ -36,7 +36,7 @@
     <div class="row" id="Diario">
         <div class="col-lg-11" >
             <div style="text-align-last: end">
-                <input id="fecha" type="month" onchange="chart()" style="font-size: 16px;  width:200px; height:40px; text-transform: uppercase; font-weight:bold;" />
+                <input id="fecha" type="date" onchange="chart()" style="font-size: 16px; width: 200px; height: 40px; text-transform: uppercase; font-weight: bold; text-align-last: initial" />
             </div>
 
             <figure class="highcharts-figure" style="padding:10px">
@@ -83,9 +83,10 @@
     window.onload = time;
     function time() {
         var now = new Date();
+        var day = ("0" + (now.getDate())).slice(-2);
         var mes = ("0" + (now.getMonth() + 1)).slice(-2);
         var year = now.getFullYear();
-        $("#fecha").val(year + "-" + mes);
+        $("#fecha").val(year + "-" + mes + "-" + day);
         chart()
     }
 
@@ -107,9 +108,16 @@
         }
     }
     function chart() {
+        $("#Mensual").hide();
 
-            var rd = {};
-            rd.Fecha = $("#fecha").val();
+        var rd = {};
+        rd.Fecha = $("#fecha").val();
+
+        var actual = new Date();
+        var daia = ("0" + (actual.getDate())).slice(-2);
+        var mese = ("0" + (actual.getMonth() + 1)).slice(-2);
+        var anio = actual.getFullYear();
+        var fechaActual = anio + "-" + mese + "-" + daia;
 
             $.ajax({
                 type:"POST",
@@ -121,40 +129,122 @@
 
                     if (Response != null) {
 
-                        Highcharts.chart('GrafPesajeFD', {
-                            chart: {
-                                type: 'line'
-                            },
-                            title: {
-                                text: 'Pesaje Diario'
-                            },
-                            xAxis: {
-                                categories: Response.lstFechaPesoDF,
-                                labels: {
-                                    skew3d: true,
-                                    rotation: 45
-                                }
-                            },
-                            yAxis: {
+                        if (rd.Fecha == fechaActual) {
+
+                            Highcharts.chart('GrafPesajeFD', {
+                                chart: {
+                                    type: 'line',
+                                    events: {
+                                        load: function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function punto() {
+                                                    var rd = {};
+                                                    rd.Fecha = $("#fecha").val();
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("ValidarPuntoPDF")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.VaraddPesoPDF > 0) {
+
+                                                                    var x = Responses.VaraddFechaPDF,
+                                                                        y = Responses.VaraddPesoPDF;
+
+                                                                    series.addPoint([x, y]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 1000);
+                                        }
+                                    }
+                                },
                                 title: {
-                                    text: 'Peso (KG)'
-                                }
-                            }, credits: {
-                                enabled: false
-                            },
-                            plotOptions: {
-                                line: {
-                                    dataLabels: {
-                                        enabled: true
-                                    },
-                                    enableMouseTracking: false
-                                }
-                            },
-                            series: [{
-                                name: 'Peso (KG)',
-                                data: Response.lstPesoDiarioF
-                            }]
-                        });
+                                    text: 'Pesaje Diario'
+                                },
+                                xAxis: {
+                                    type: 'category',
+                                    labels: {
+                                        skew3d: true,
+                                        rotation: 40,
+                                        style: { color: 'Black' }
+                                    }
+                                },
+                                yAxis: {
+                                    title: {
+                                        text: 'Peso (KG)'
+                                    }
+                                }, credits: {
+                                    enabled: false
+                                },
+                                plotOptions: {
+                                    line: {
+                                        dataLabels: {
+                                            enabled: true
+                                        },
+                                        enableMouseTracking: false
+                                    }
+                                },
+                                series: [{
+                                    name: 'Peso (KG)',
+                                    data:
+                                        (function () {
+                                            var data = [],
+                                                dat = Response.lstPesoDiarioF,
+                                                fec = Response.lstFechaPesoDFL;
+
+                                            for (var i = 0; i < dat.length; i++) {
+                                                data.push({
+                                                    name: fec[i],
+                                                    y: dat[i]
+                                                });
+                                            }
+                                            return data;
+                                        }())
+                                }]
+                            });
+                        } else {
+
+                            Highcharts.chart('GrafPesajeFD', {
+                                chart: {
+                                    type: 'line'
+                                },
+                                title: {
+                                    text: 'Pesaje Diario'
+                                },
+                                xAxis: {
+                                    categories: Response.lstFechaPesoDF,
+                                    labels: {
+                                        skew3d: true,
+                                        rotation: 45
+                                    }
+                                },
+                                yAxis: {
+                                    title: {
+                                        text: 'Peso (KG)'
+                                    }
+                                }, credits: {
+                                    enabled: false
+                                },
+                                plotOptions: {
+                                    line: {
+                                        dataLabels: {
+                                            enabled: true
+                                        },
+                                        enableMouseTracking: false
+                                    }
+                                },
+                                series: [{
+                                    name: 'Peso (KG)',
+                                    data: Response.lstPesoDiarioF
+                                }]
+                            });
+                        }
 
 
 
@@ -166,7 +256,7 @@
         }
 
        function chart1() {
-
+           $("#Diario").hide();
             var rd = {};
          rd.Fecha = "01/01/" + $("#Year").val();
 

@@ -14,5 +14,8 @@ namespace LimpArena.Controllers
         public static int contadorcribado { get; set; }
         public static int contadorSentrifugadoCargas { get; set; }
         public static int contadorQuemadoResinas { get; set; }
+        public static int contadorcribado2 { get; set; }
+        public static int contadorInspeccionC { get; set; }
+        public static int contadorPesajeFinal { get; set; }
     }
 }

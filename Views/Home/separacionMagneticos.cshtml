@@ -56,8 +56,8 @@
 
 
 
-<script>
-    setInterval("chart()", 10000);
+ <script>
+    //setInterval("chart()", 10000);
     window.onload = time;
     function time() {
         var now = new Date();
@@ -72,7 +72,7 @@
 
         var rd = {};
         rd.Fecha = $("#fecha").val();
-            
+
            $.ajax({
                 type:"POST",
                 url: '@Url.Action("separacionMagneticos")',
@@ -91,9 +91,42 @@
                        var RangCont = Response.BarMINSmContaminacion;
 
 
-
-                       Highcharts.chart('GrafSmResiduos', {
-
+                       try {
+                           Highcharts.chart('GrafSmResiduos', {
+                               chart: {
+                                   events: {
+                                       load: function () {
+                                           var series = this.series[0]
+                                           var series1 = this.series[1];
+                                           var series2 = this.series[2];
+                                           setInterval(
+                                               function punto() {
+                                                   var rd = {};
+                                               rd.Fecha = $("#fecha").val();
+                                               $.ajax({
+                                                   type: "POST",
+                                                   url: '@Url.Action("ValidarPuntoSM")',
+                                                   data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                   dataType: "json",
+                                                   contentType: "application/json; chartset=uft-8",
+                                                   success: function (Responses) {
+                                                       if (Responses != null) {
+                                                           if (Responses.VarResiduoCribadoU > 0) {
+                                                               var x = Responses.VarfechaCribado,
+                                                                   w = Responses.VarResiduoCribadoU,
+                                                                   y = 60,
+                                                                   z = 0;
+                                                               series.addPoint([x, w]);
+                                                               series1.addPoint([x, y]);
+                                                               series2.addPoint([x, z]);
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 5000);
+                                        }
+                                    }
+                                },
                            title: {
                                text: 'Residuos'
                            },
@@ -132,87 +165,126 @@
 
                            series: [{
                                name: 'Residuo',
-                               data: Response.lstparticulasSM
+                               data: (function () {
+                                   var data = [],
+                                       dat = Response.lstparticulasSM,
+                                       fec = Response.lstfechasm;
+
+                                   for (var i = 0; i < dat.length; i++) {
+                                       data.push({
+                                           name: fec[i],
+                                           y: dat[i]
+                                       });
+                                   }
+                                   return data;
+                               }())
                            },
                            {
                                name: 'Max',
-                               data: Response.BarMaxSmResiduo
-                               },
+                               data: (function () {
+                                   var data = [],
+                                       datos = Response.BarMaxSmResiduo;
 
-                               {
-                           name: 'Min',
-                                data: Response.BarMinSM
-
-                            }],
-                            responsive: {
-                           rules: [{
+                                   for (var i = 0; i < datos.length; i++) {
+                                       data.push({
+                                           y: datos[i]
+                                       });
+                                   }
+                                   return data;
+                               }())
+                           },
+                           {
+                               name: 'Min',
+                               data: (function () {
+                                   var data = [],
+                                       datos = Response.BarMinSM;
+                                   for (var i = 0; i < datos.length; i++) {
+                                       data.push({
+                                           y: datos[i]
+                                       });
+                                   }
+                                   return data;
+                               }())
+                           }
+                           ],
+                           responsive: {
+                               rules: [{
                                condition: {
                                    maxWidth: 500
                                     },
-                                    chartOptions: {
-                                   legend: {
-                                       layout: 'horizontal',
-                                            align: 'center',
-                                            verticalAlign: 'bottom'
-                                        }
+                                   chartOptions: {
+                                       legend: {
+                                           layout: 'horizontal',
+                                           align: 'center',
+                                           verticalAlign: 'bottom'
+                                       }
                                    }
                                }]
                             }
 
                        });
 
+                       } catch (e) {
 
-                        Highcharts.chart('GrafSmContaminacion', {
+                       }
 
-                            title: {
-                                text: 'Contaminación'
-                            }, credits: {
-                                enabled: false
-                            },
 
-                            xAxis: {
-                                categories: Response.lstfechasm,
-                                labels: {
-                                    rotation: 45,
-                                    style: { color: 'Black' }
-                                }
-                            },
+                       try {
+                           Highcharts.chart('GrafSmContaminacion', {
 
-                            yAxis: {
-                                title: {
-                                    text: null
-                                }
-                            },
+                               title: {
+                                   text: 'Contaminación'
+                               }, credits: {
+                                   enabled: false
+                               },
 
-                            tooltip: {
-                                crosshairs: true,
-                                shared: true,
-                                valueSuffix: 'Contaminación:'
-                            },
+                               xAxis: {
+                                   categories: Response.lstfechasm,
+                                   labels: {
+                                       rotation: 45,
+                                       style: { color: 'Black' }
+                                   }
+                               },
 
-                            series: [{
-                                name: 'Contaminacion',
-                                data: Response.lstcontaminacionSM,
-                                zIndex: 1,
-                                marker: {
-                                    fillColor: 'white',
-                                    lineWidth: 2,
-                                    lineColor: Highcharts.getOptions().colors[0]
-                                }
-                            }, {
-                                name: 'Range',
-                                data: RangCont,
-                                type: 'arearange',
-                                lineWidth: 0,
-                                linkedTo: ':previous',
-                                color: Highcharts.getOptions().colors[0],
-                                fillOpacity: 0.3,
-                                zIndex: 0,
-                                marker: {
-                                    enabled: false
-                                }
-                                }]
-                        });
+                               yAxis: {
+                                   title: {
+                                       text: null
+                                   }
+                               },
+
+                               tooltip: {
+                                   crosshairs: true,
+                                   shared: true,
+                                   valueSuffix: 'Contaminación:'
+                               },
+
+                               series: [{
+                                   name: 'Contaminacion',
+                                   data: Response.lstcontaminacionSM,
+                                   zIndex: 1,
+                                   marker: {
+                                       fillColor: 'white',
+                                       lineWidth: 2,
+                                       lineColor: Highcharts.getOptions().colors[0]
+                                   }
+                               }, {
+                                   name: 'Range',
+                                   data: RangCont,
+                                   type: 'arearange',
+                                   lineWidth: 0,
+                                   linkedTo: ':previous',
+                                   color: Highcharts.getOptions().colors[0],
+                                   fillOpacity: 0.3,
+                                   zIndex: 0,
+                                   marker: {
+                                       enabled: false
+                                   }
+                               }]
+                           });
+                       } catch (e) {
+
+                       }
+                        
 
                    } else {
                        alert('NULO');
@@ -223,6 +295,6 @@
                },
            });
     }
-</script>
+ </script>
 
 

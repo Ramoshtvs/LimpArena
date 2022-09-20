@@ -2,11 +2,12 @@
 @{
     ViewBag.Title = "CribadoProceso2";
 }
-
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
 <script src="~/Scripts/Highcharts/highcharts.js"></script>
 <script src="~/Scripts/Highcharts/pareto.js"></script>
 <script src="~/Scripts/Highcharts/exporting.js"></script>
 <script src="~/Scripts/Highcharts/export-data.js"></script>
+<script src="~/Scripts/Highcharts/highcharts-more.js"></script>
 <script src="~/Scripts/Highcharts/accessibility.js"></script>
 <link href="~/fontawesome-free-6.1.2-web/css/all.css" rel="stylesheet" />
 <link href="~/Content/bootstrap5/bootstrap.min.css" rel="stylesheet" />
@@ -49,17 +50,13 @@
     <div class="col-md-8">
         <div class="row">
             <figure class="highcharts-figure">
-                <div>
-                    <div id="GrafCribadoContaminacion" style="height:250px; width: 1100px;box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;"></div>
-
-                </div>
+                    <div id="Contaminacion" style="height:250px; width: 1100px;box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;"></div>
             </figure>
         </div>
+
         <div class="row" style="padding-top:5px">
             <figure class="highcharts-figure">
-                <div>
-                    <div id="GrafCribadoResiduo" style="height:250px; width: 1100px;box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;"></div>
-                </div>
+                <div id="Residuo" style="height:250px; width: 1100px;box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;"></div>
             </figure>
         </div>
 
@@ -68,7 +65,7 @@
 </div>
 
 <script>
-    setInterval("chart()", 10000);
+    //setInterval("chart()", 10000);
     window.onload = time;
     function time() {
         var now = new Date();
@@ -96,59 +93,45 @@
                     $("#lblFecha").html(Response.VarFechaCR);
                     $("#lblContaminacion").html(Response.VarContaminacionCR);
 
-                    Highcharts.chart('GrafCribadoResiduo', {
-                        chart: {
-                            type: 'column'
-                        },
-                        title: {
-                            text: 'Residuo'
-                        },
-                        accessibility: {
-                            announceNewData: {
-                                enabled: true
-                            }
-                        },
-                        credits: {
-                            enabled: false
-                        },
-                        xAxis: {
-                            categories: Response.lstFechaCr,
-                            labels: {
-                                rotation: 45,
-                                style: { color: 'Black' }
-                            }
-                        },
-                        yAxis: {
-                            title: {
-                                text: 'Residuo'
-                            }
 
-                        },
-                        legend: {
-                            enabled: false
-                        },
-                        plotOptions: {
-                            series: {
-                                borderWidth: 0,
-                                dataLabels: {
-                                    enabled: true,
-                                    format: '{point.y:.1f} %'
+
+
+
+                    try {
+                        Highcharts.chart('Contaminacion', {
+                        chart: {
+                            renderTo: 'Contamina',
+                            type: 'column',
+
+                             events: {
+                                    load:function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function barra() {
+                                                    var rd = {};
+                                                    rd.Fecha = $("#fecha").val();
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("validarBarrascribado2")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.VaraddContaminacionCR > 0) {
+
+                                                                    var x = Responses.VaraddFechaCR,
+                                                                        y = Responses.VaraddContaminacionCR;
+
+                                                                    series.addPoint([ x, y ]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 5000);
+                                        }
                                 }
-                            }
-                        },
-
-                        series: [
-                            {
-                                name: 'Residuo',
-                                colorByPoint: true,
-                                data: Response.lstResiduoCr
-                            }
-                        ]
-                    });
-
-                    Highcharts.chart('GrafCribadoContaminacion', {
-                        chart: {
-                            type: 'column'
                         },
                         title: {
                             text: 'Contaminación'
@@ -162,7 +145,8 @@
                             enabled: false
                         },
                         xAxis: {
-                            categories: Response.lstFechaCr,
+
+                            type: 'category',
                             labels: {
                                 rotation: 45,
                                 style: { color: 'Black' }
@@ -191,10 +175,132 @@
                             {
                                 name: 'Contaminación',
                                 colorByPoint: true,
-                                data: Response.lstContaminacionCr
+                                data: (function () {
+                                    var data = [],
+                                        dat = Response.lstContaminacionCr,
+                                        fec = Response.lstFechaCr;
+
+                                    for (var i = 0; i < dat.length; i++) {
+
+                                        data.push({
+                                            name: fec[i],
+                                            y: dat[i]
+                                        });
+
+                                    }
+                                    return data;
+                                }())
                             }
                         ]
                     });
+                    } catch (e) {
+
+                    }
+
+                    try {
+                        Highcharts.chart('Residuo', {
+                        chart: {
+                            type: 'column',
+                            renderTo: 'Residuo',
+                            events: {
+                                    load:function () {
+                                            var series = this.series[0];
+                                            setInterval(
+                                                function barra() {
+                                                    var rd = {};
+                                                    rd.Fecha = $("#fecha").val();
+                                                    $.ajax({
+                                                        type: "POST",
+                                                        url: '@Url.Action("validarBarrascribado2")',
+                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
+                                                        dataType: "json",
+                                                        contentType: "application/json; chartset=uft-8",
+                                                        success: function (Responses) {
+                                                            if (Responses != null) {
+                                                                if (Responses.VaraddResiduoCR > 0) {
+
+                                                                    var x = Responses.VaraddFechaCR,
+                                                                        y = Responses.VaraddResiduoCR;
+
+                                                                    series.addPoint([ x, y ]);
+
+                                                                }
+                                                            }
+                                                        },
+                                                    });
+                                                }, 5000);
+                                        }
+                                }
+                        },
+                        title: {
+                            text: 'Residuo'
+                        },
+                        accessibility: {
+                            announceNewData: {
+                                enabled: true
+                            }
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        xAxis: {
+
+                            type: 'category',
+                            labels: {
+                                rotation: 45,
+                                style: { color: 'Black' }
+                            }
+                        },
+                        yAxis: {
+                            title: {
+                                text: 'Residuo'
+                            }
+
+                        },
+                        legend: {
+                            enabled: false
+                        },
+                        plotOptions: {
+                            series: {
+                                borderWidth: 0,
+                                dataLabels: {
+                                    enabled: true,
+                                    format: '{point.y:.1f} %'
+                                }
+                            }
+                        },
+
+                        series: [
+                            {
+                                name: 'Residuo',
+                                colorByPoint: true,
+                                data:
+                                (function () {
+                                    var data = [],
+                                        dat = Response.lstResiduoCr,
+                                        fec = Response.lstFechaCr;
+
+                                    for (var i = 0; i < dat.length; i++) {
+
+                                        data.push({
+                                            name: fec[i],
+                                            y: dat[i]
+                                        });
+
+                                    }
+                                    return data;
+                                }())
+                            }
+                        ]
+                    });
+                    } catch (e) {
+
+                    }
+
+
+
+
+
                 } else {
                     alert('NULO');
                 }
