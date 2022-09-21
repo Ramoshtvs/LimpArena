@@ -123,7 +123,12 @@
                                                                     var x = Responses.VaraddFechaCR,
                                                                         y = Responses.VaraddContaminacionCR;
 
-                                                                    series.addPoint([ x, y ]);
+                                                                    series.addPoint([x, y]);
+
+                                                                    $("#lblTamaño").html(Responses.VarTGranoCR);
+                                                                    $("#lblReciduo").html(Responses.VaraddResiduoCR);
+                                                                    $("#lblFecha").html(Responses.VarFechaCR);
+                                                                    $("#lblContaminacion").html(Responses.VaraddContaminacionCR);
 
                                                                 }
                                                             }

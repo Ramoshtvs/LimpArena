@@ -239,6 +239,10 @@ namespace LimpArena.Controllers
                 objvariables.VarfechaCribado = Convert.ToString(validarPunto.Fecha.Value.ToLongTimeString());
                 objvariables.VarResiduoCribadoU = Convert.ToDecimal(validarPunto.Particulas);
 
+
+                DateTime Hora = Convert.ToDateTime(validarPunto.Fecha);
+                objvariables.varfechaSM = Convert.ToString(Hora);
+
             }
 
                 return Json(objvariables, JsonRequestBehavior.AllowGet);
@@ -263,6 +267,8 @@ namespace LimpArena.Controllers
                 objvariables.VaraddTemArena = Convert.ToDecimal(validarQR.TempArena);
                 objvariables.VaraddTemExt = Convert.ToDecimal(validarQR.TempExterna);
                 objvariables.VaraddTemInt = Convert.ToDecimal(validarQR.TempInterna);
+                objvariables.VarFechaQR = Convert.ToString(validarQR.Fecha);
+                objvariables.VarCalibracionQR = Convert.ToDecimal(validarQR.AireComprimido);
             }
 
             return Json(objvariables, JsonRequestBehavior.AllowGet);
@@ -760,7 +766,7 @@ namespace LimpArena.Controllers
             List<string> lstFecha = new List<string>();
 
             var ultimo = db.CribadoProceso2.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
-            DateTime Hora = Convert.ToDateTime(ultimo.Fecha);
+            
 
             DateTime fecha = Convert.ToDateTime(rd.Fecha);
             var fechaTG = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
@@ -781,6 +787,7 @@ namespace LimpArena.Controllers
             objvariables.lstFechaCr = lstFecha;
 
             objvariables.VarResiduoCR = Convert.ToDecimal(ultimo.Residuo);
+            DateTime Hora = Convert.ToDateTime(ultimo.Fecha);
             objvariables.VarFechaCR = Convert.ToString(Hora);
             objvariables.VarContaminacionCR = Convert.ToDecimal(ultimo.Contaminación);
             objvariables.VarTGranoCR = Convert.ToInt32(ultimo.Tamanio);
@@ -814,6 +821,9 @@ namespace LimpArena.Controllers
                 objvariables.VaraddContaminacionCR = Convert.ToDecimal(validarBarra.Contaminación);
                 objvariables.VaraddResiduoCR = Convert.ToDecimal(validarBarra.Residuo);
                 objvariables.VaraddFechaCR = Convert.ToString(validarBarra.Fecha.Value.ToLongTimeString());
+                objvariables.VarTGranoCR = Convert.ToInt32(validarBarra.Tamanio);
+                DateTime Hora = Convert.ToDateTime(validarBarra.Fecha);
+                objvariables.VarFechaCR = Convert.ToString(Hora);
             }
             return Json(objvariables, JsonRequestBehavior.AllowGet);
         }

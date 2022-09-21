@@ -97,9 +97,6 @@
 
                        var RangCont = Response.BarMINSmContaminacion;
 
-                       if (rd.Fecha == fechaActual) {
-
-                       }
 
                        try {
                            Highcharts.chart('GrafSmResiduos', {
@@ -129,6 +126,11 @@
                                                                series.addPoint([x, w]);
                                                                series1.addPoint([x, y]);
                                                                series2.addPoint([x, z]);
+
+                                                               $("#lblContaminacionSM").html(Responses.VarcontaminacionCribado + " %");
+                                                               $("#lblParticulasSM").html(Responses.VarResiduoCribadoU + " AFS");
+                                                               $("#lblFechaSM").html(Responses.varfechaSM);
+
                                                                 }
                                                             }
                                                         },
@@ -236,9 +238,6 @@
                        } catch (e) {
 
                        }
-
-
-
 
                        try {
                            Highcharts.chart('GrafSmContaminacion', {

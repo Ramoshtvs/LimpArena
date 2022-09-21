@@ -114,6 +114,13 @@
                                                                    series.addPoint([x, z]);
                                                                    series1.addPoint([x, w]);
                                                                    series2.addPoint([x, y]);
+
+                                                                   $("#lblTempInterna").html(Responses.VaraddTemInt + " °C");
+                                                                   $("#lblTempExterna").html(Responses.VaraddTemExt + " °C");
+                                                                   $("#lblTempArena").html(Responses.VaraddTemArena + " °C");
+                                                                   $("#lblAire").html(Responses.VarCalibracionQR + " hp");
+                                                                   $("#lblFecha").html(Responses.VarFechaQR);
+
                                                                }
                                                            }
                                                        },
