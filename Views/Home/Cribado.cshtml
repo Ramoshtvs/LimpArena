@@ -89,6 +89,8 @@
         var rd = {};
         rd.Fecha = $("#fecha").val();
 
+
+
            $.ajax({
                 type:"POST",
                 url: '@Url.Action("Cribado")',
@@ -124,6 +126,11 @@
                                                         success: function (Responses) {
                                                             if (Responses != null) {
                                                                 if (Responses.newaddContaminacion > 0) {
+
+                                                                    $("#lblTamaño").html(Responses.granoCribado);
+                                                                    $("#lblReciduo").html(Responses.ResiduoCribado);
+                                                                    $("#lblFecha").html(Responses.fechaCribado);
+                                                                    $("#lblContaminacion").html(Responses.newaddContaminacion);
 
                                                                     var x = Responses.newaddfechaCribado,
                                                                         y = Responses.newaddContaminacion;

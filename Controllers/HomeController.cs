@@ -219,6 +219,7 @@ namespace LimpArena.Controllers
 
             return Json(objvariables, JsonRequestBehavior.AllowGet);
         }
+        [HttpPost]
         public ActionResult ValidarPuntoSM(SeparacionMagneticos rd)
         {
             variables objvariables = new variables();
@@ -457,8 +458,9 @@ namespace LimpArena.Controllers
             DateTime Hora = Convert.ToDateTime(ultimo.Fecha);
 
             objvariables.fechaCribado = Convert.ToString(Hora);
-            objvariables.contaminacionCribado = Convert.ToDecimal(ultimo.Contaminacion);
+            
             objvariables.granoCribado = Convert.ToInt32(ultimo.TamanoGrano);
+            objvariables.contaminacionCribado = Convert.ToDecimal(ultimo.Contaminacion);
 
             return Json(objvariables, JsonRequestBehavior.AllowGet);
         }
@@ -489,6 +491,16 @@ namespace LimpArena.Controllers
                 objvariables.newaddContaminacion = Convert.ToDecimal(validarBarra.Contaminacion);
                 objvariables.newaddResiduo = Convert.ToDecimal(validarBarra.residuo);
                 objvariables.newaddfechaCribado = Convert.ToString(validarBarra.Fecha.Value.ToLongTimeString());
+
+
+                objvariables.ResiduoCribado = Convert.ToDecimal(validarBarra.residuo);
+
+                DateTime Hora = Convert.ToDateTime(validarBarra.Fecha);
+
+                objvariables.fechaCribado = Convert.ToString(Hora);
+
+                objvariables.granoCribado = Convert.ToInt32(validarBarra.TamanoGrano);
+
             }
             return Json(objvariables, JsonRequestBehavior.AllowGet);
         }
@@ -511,7 +523,7 @@ namespace LimpArena.Controllers
             var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
 
             var ultimoSM = db.SeparacionMagneticos.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
-            DateTime Hora = Convert.ToDateTime(ultimoSM.Fecha);            
+            
 
             var data = db.SeparacionMagneticos.Where(x => x.Fecha.Value >= rd.Fecha.Value && x.Fecha.Value <= fechaf).ToList();
 
@@ -539,6 +551,7 @@ namespace LimpArena.Controllers
 
             objvariables.varcontamSM = Convert.ToDecimal(ultimoSM.Contaminacion);
             objvariables.varpartiSM = Convert.ToInt32(ultimoSM.Particulas);
+            DateTime Hora = Convert.ToDateTime(ultimoSM.Fecha);
             objvariables.varfechaSM = Convert.ToString(Hora);
             objvariables.BarMaxSmResiduo = lstMaxSmResiduo;
             objvariables.BarMinSM = lstMinSM;

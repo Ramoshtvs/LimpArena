@@ -70,6 +70,13 @@
 
     function chart() {
 
+
+        var actual = new Date();
+        var daia = ("0" + (actual.getDate())).slice(-2);
+        var mese = ("0" + (actual.getMonth() + 1)).slice(-2);
+        var anio = actual.getFullYear();
+        var fechaActual = anio + "-" + mese + "-" + daia;
+
         var rd = {};
         rd.Fecha = $("#fecha").val();
 
@@ -90,6 +97,9 @@
 
                        var RangCont = Response.BarMINSmContaminacion;
 
+                       if (rd.Fecha == fechaActual) {
+
+                       }
 
                        try {
                            Highcharts.chart('GrafSmResiduos', {
@@ -123,7 +133,7 @@
                                                             }
                                                         },
                                                     });
-                                                }, 5000);
+                                                }, 10000);
                                         }
                                     }
                                 },
@@ -141,7 +151,7 @@
                            },
 
                            xAxis: {
-                               categories: Response.lstfechasm,
+                               type: 'category',
                                labels: {
                                    rotation: 45,
                                    style: { color: 'Black' }
@@ -223,10 +233,11 @@
                             }
 
                        });
-
                        } catch (e) {
 
                        }
+
+
 
 
                        try {
@@ -284,7 +295,7 @@
                        } catch (e) {
 
                        }
-                        
+
 
                    } else {
                        alert('NULO');
