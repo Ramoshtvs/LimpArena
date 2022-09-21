@@ -224,6 +224,9 @@ namespace LimpArena.Controllers
         {
             variables objvariables = new variables();
 
+            List<decimal> rangosContaminacion = new List<decimal>();
+            List<decimal[]> datosF = new List<decimal[]>();// arrayList   
+
             DateTime fecha = Convert.ToDateTime(rd.Fecha);
             var fechaf = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
             var separacion = db.SeparacionMagneticos.Where(x => x.Fecha.Value >= rd.Fecha && x.Fecha.Value <= fechaf).ToList();
@@ -240,12 +243,20 @@ namespace LimpArena.Controllers
                 objvariables.VarResiduoCribadoU = Convert.ToDecimal(validarPunto.Particulas);
 
 
+                rangosContaminacion.Add(0);
+                rangosContaminacion.Add(5);
+
+                decimal[] array = rangosContaminacion.ToArray();
+                datosF.Add(array);
+                rangosContaminacion.Clear();
+
                 DateTime Hora = Convert.ToDateTime(validarPunto.Fecha);
                 objvariables.varfechaSM = Convert.ToString(Hora);
 
             }
+            objvariables.BarMINSmContaminacion = datosF;
 
-                return Json(objvariables, JsonRequestBehavior.AllowGet);
+            return Json(objvariables, JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public ActionResult ValidarPuntoQR(Pesaje rd)
