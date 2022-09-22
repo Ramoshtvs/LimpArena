@@ -92,16 +92,17 @@ body {
 
             color:darkgrey;
         }
-            
 
-input[type="checkbox"]:checked ~ #sidebarMenu {
+
+input[type="radio"]:checked ~ #sidebarMenu {
     transform: translateX(0);
 }
 
-input[type=checkbox] {
+input[type=radio] {
     transition: all 0.3s;
     box-sizing: border-box;
     display: none;
+    color: black;
 }
 
 .sidebarIconToggle {

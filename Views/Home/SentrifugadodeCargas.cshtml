@@ -3,7 +3,7 @@
     ViewBag.Title = "SentrifugadodeCargas";
 }
 
-
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
 <script src="~/Scripts/Highcharts/highcharts.js"></script>
 <script src="~/Scripts/Highcharts/exporting.js"></script>
 <script src="~/Scripts/Highcharts/export-data.js"></script>
@@ -81,7 +81,7 @@
 
 
 <script>
-    setInterval("chart1()", 10000);
+    setInterval("chart1()", 5000);
     window.onload = time;
     function time() {
         var now = new Date();
@@ -91,12 +91,13 @@
         $("#fecha").val(year + "-" + mes + "-" + day);
         chart()
     }
-
+    var series;
     function chart() {
         //$("#tblTemperatura > tbody").remove();
 
         var rd = {};
         rd.Fecha = $("#fecha").val();
+
 
         var actual = new Date();
         var daia = ("0" + (actual.getDate())).slice(-2);
@@ -120,31 +121,7 @@
                                    type: 'line',
                                    events: {
                                        load: function () {
-                                           var series = this.series[0];
-                                           setInterval(
-                                               function barra() {
-                                                   var rd = {};
-                                                   rd.Fecha = $("#fecha").val();
-                                                   $.ajax({
-                                                       type: "POST",
-                                                       url: '@Url.Action("ValidarPuntoSC")',
-                                                       data: '{rd: ' + JSON.stringify(rd) + '}',
-                                                       dataType: "json",
-                                                       contentType: "application/json; chartset=uft-8",
-                                                       success: function (Responses) {
-                                                           if (Responses != null) {
-                                                               if (Responses.varTempSC > 0) {
-
-                                                                   var x = Responses.varfechaSC,
-                                                                       y = Responses.varTempSC;
-
-                                                                   series.addPoint([x, y]);
-
-                                                               }
-                                                           }
-                                                       },
-                                                   });
-                                               }, 5000);
+                                            series = this.series[0];
                                        }
                                    }
                                },
@@ -266,12 +243,36 @@
     }
 
 
+
+                                               //function barra() {
+                                               //    var rd = {};
+                                               //    rd.Fecha = $("#fecha").val();
+
+                                               //}
+
+
     function chart1() {
         //$("#tblTemperatura > tbody").remove();
 
         var rd = {};
         rd.Fecha = $("#fecha").val();
-
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ValidarPuntoSC")',
+            data: '{rd: ' + JSON.stringify(rd) + '}',
+            dataType: "json",
+            contentType: "application/json; chartset=uft-8",
+            success: function (Responses) {
+                if (Responses != null) {
+                    if (Responses.varTempSC > 0) {
+                        var x = Responses.varfechaSC,
+                            y = Responses.varTempSC;
+                        series.addPoint([x, y]);
+                    }
+                } else {
+                }
+            },
+        });
            $.ajax({
                 type:"POST",
                 url: '@Url.Action("SentrifugadodeCargas")',
@@ -310,6 +311,8 @@
                     }
                },
            });
+
+
     }
 
 

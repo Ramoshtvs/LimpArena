@@ -449,6 +449,7 @@ namespace LimpArena.Controllers
             List<decimal> contamCribado = new List<decimal>();
             List<decimal> residCribado = new List<decimal>();
             List<string> fechaCribado = new List<string>();
+            List<string> fechaCribadoL = new List<string>();
 
             DateTime fecha = Convert.ToDateTime(rd.Fecha);
             var fechaTG = Convert.ToDateTime(fecha.ToString("yyyy-MM-dd 23:59:59"));
@@ -464,11 +465,13 @@ namespace LimpArena.Controllers
                 contamCribado.Add(Convert.ToDecimal(item.Contaminacion));
                 residCribado.Add(Convert.ToDecimal(item.residuo));
                 fechaCribado.Add(item.Fecha.Value.ToLongTimeString());
+                fechaCribadoL.Add(item.Fecha.Value.ToShortDateString());
             }
 
             objvariables.contaminacionC = contamCribado;
             objvariables.ResiduoC = residCribado;
             objvariables.fechaC = fechaCribado;
+            objvariables.fechaCL = fechaCribadoL;
 
             objvariables.ResiduoCribado = Convert.ToDecimal(ultimo.residuo);
             
@@ -530,6 +533,7 @@ namespace LimpArena.Controllers
             List<decimal> lstContamSM = new List<decimal>();
             List<int> lstPartiSM = new List<int>();
             List<string> lstFechaSM = new List<string>();
+            List<string> lstFechaSML = new List<string>();
 
             List<decimal> lstMinSM = new List<decimal>();
             List<decimal> lstMaxSmResiduo = new List<decimal>();
@@ -551,6 +555,7 @@ namespace LimpArena.Controllers
                 lstContamSM.Add(Convert.ToDecimal(item.Contaminacion));
                 lstPartiSM.Add(Convert.ToInt32(item.Particulas));
                 lstFechaSM.Add(item.Fecha.Value.ToLongTimeString());
+                lstFechaSML.Add(item.Fecha.Value.ToShortDateString());
                 lstMinSM.Add(0);
                 lstMaxSmResiduo.Add(60);
 
@@ -565,6 +570,7 @@ namespace LimpArena.Controllers
             objvariables.lstcontaminacionSM = lstContamSM;
             objvariables.lstparticulasSM = lstPartiSM;
             objvariables.lstfechasm = lstFechaSM;
+            objvariables.lstfechasmL = lstFechaSML;
 
             objvariables.varcontamSM = Convert.ToDecimal(ultimoSM.Contaminacion);
             objvariables.varpartiSM = Convert.ToInt32(ultimoSM.Particulas);
@@ -584,6 +590,7 @@ namespace LimpArena.Controllers
 
             return View();
         }
+        [HttpPost]
         public ActionResult ValidarPuntoSC(Pesaje rd)
         {
             variables objvariables = new variables();
@@ -775,6 +782,7 @@ namespace LimpArena.Controllers
             List<decimal> lstContaminacion = new List<decimal>();
             List<decimal> lstReciduo = new List<decimal>();
             List<string> lstFecha = new List<string>();
+            List<string> lstFechal = new List<string>();
 
             var ultimo = db.CribadoProceso2.OrderByDescending(x => x.Id).FirstOrDefault();//tomando el ultimo dato
             
@@ -790,12 +798,13 @@ namespace LimpArena.Controllers
                 lstContaminacion.Add(Convert.ToDecimal(item.Contaminación));
                 lstReciduo.Add(Convert.ToDecimal(item.Residuo));
                 lstFecha.Add(item.Fecha.Value.ToLongTimeString());
-                //lstFecha.Add(item.Fecha.Value.ToShortDateString());
+                lstFechal.Add(item.Fecha.Value.ToShortDateString());
             }
 
             objvariables.lstContaminacionCr = lstContaminacion;
             objvariables.lstResiduoCr = lstReciduo;
             objvariables.lstFechaCr = lstFecha;
+            objvariables.lstFechaCrl = lstFechal;
 
             objvariables.VarResiduoCR = Convert.ToDecimal(ultimo.Residuo);
             DateTime Hora = Convert.ToDateTime(ultimo.Fecha);
@@ -1102,6 +1111,7 @@ namespace LimpArena.Controllers
             public List<decimal> contaminacionC { get; set; }
             public List<decimal> ResiduoC { get; set; }
             public List<String> fechaC { get; set; }
+            public List<String> fechaCL { get; set; }
             public int granoCribado { get; set; }
             public decimal contaminacionCribado { get; set; }
             public decimal newaddContaminacion { get; set; }
@@ -1120,6 +1130,7 @@ namespace LimpArena.Controllers
             public List<decimal> lstcontaminacionSM { get; set; }
             public List<int> lstparticulasSM { get; set; }
             public List<String> lstfechasm { get; set; }
+            public List<String> lstfechasmL { get; set; }
             public Decimal varcontamSM { get; set; }
             public String varfechaSM { get; set; }
             public int varpartiSM { get; set; }
@@ -1169,6 +1180,7 @@ namespace LimpArena.Controllers
             public List<decimal> lstContaminacionCr { get; set; }
             public List<decimal> lstResiduoCr { get; set; }
             public List<String> lstFechaCr { get; set; }
+            public List<String> lstFechaCrl { get; set; }
             public decimal VarTGranoCR { get; set; }
             public decimal VarContaminacionCR { get; set; }
             public decimal VarResiduoCR { get; set; }

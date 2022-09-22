@@ -74,126 +74,39 @@
         rd.Fecha = $("#fecha").val();
 
 
-           $.ajax({
-                type:"POST",
-                url: '@Url.Action("separacionMagneticos")',
-                data: '{rd: ' + JSON.stringify(rd) + '}',
-                dataType: "json",
-                contentType:"application/json; chartset=uft-8",
-               success: function (Response) {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("separacionMagneticos")',
+            data: '{rd: ' + JSON.stringify(rd) + '}',
+            dataType: "json",
+            contentType: "application/json; chartset=uft-8",
+            success: function (Response) {
 
 
 
-                   if (Response != null) {
-                       $("#lblContaminacionSM").html(Response.varcontamSM + " %");
-                       $("#lblParticulasSM").html(Response.varpartiSM + " AFS");
-                       $("#lblFechaSM").html(Response.varfechaSM);
+                if (Response != null) {
+                    $("#lblContaminacionSM").html(Response.varcontamSM + " %");
+                    $("#lblParticulasSM").html(Response.varpartiSM + " AFS");
+                    $("#lblFechaSM").html(Response.varfechaSM);
 
-                      var RangCont = Response.BarMINSmContaminacion;
+                    var RangCont = Response.BarMINSmContaminacion;
 
+                    var id1, id2;
 
-                        Highcharts.chart('GrafSmContaminacion', {
-                            chart: {
-                                    events: {
-                                        load: function () {
-                                            var series = this.series[0]
-                                            var series1 = this.series[1];
+                    ctn = 0;
+                    while (true) {
+                        if (ctn == 0) {
+                            clearInterval(id2);
+                            id1= setInterval(alert('primero'), 5000);
+                            ctn++;
 
-                                            setInterval(
-                                                function punto() {
-                                                    var rd = {};
-                                                    rd.Fecha = $("#fecha").val();
-                                                    $.ajax({
-                                                        type: "POST",
-                                                        url: '@Url.Action("ValidarPuntoSM")',
-                                                        data: '{rd: ' + JSON.stringify(rd) + '}',
-                                                        dataType: "json",
-                                                        contentType: "application/json; chartset=uft-8",
-                                                        success: function (Responses) {
-                                                            if (Responses != null) {
-                                                                if (Responses.VarcontaminacionCribado > 0) {
+                        } else {
+                            clearInterval(id1);
+                            id2 = setInterval(alert('segundo'), 5000);
+                            ctn = 0;
 
-                                                                    var x = Responses.VarfechaCribado,
-                                                                        y = Responses.VarcontaminacionCribado,
-                                                                        z = [0, 5];
-                                                                    z1 = [x, z];
-
-                                                                    series.addPoint([x, y]);                                                                  
-
-                                                                    series1.addPoint([x,0,5], true);                                                                   
-
-
-                                                                }
-                                                            }
-                                                        },
-                                                    });
-                                                }, 5000);
-                                        }
-                                    }
-                                },
-                            title: {
-                                text: 'Contaminación'
-                            },
-                            credits: {
-                                enabled: false
-                            },
-                            xAxis: [{
-                                type: 'category',
-                                labels: {
-                                    rotation: 40,
-                                    style: { color: 'Black' }
-                                }
-                               
-                            }],
-                            yAxis: {
-                                title: {
-                                    text: null
-                                }
-                            },
-                            tooltip: {
-                                crosshairs: true,
-                                shared: true,
-                                valueSuffix: 'Contaminación:'
-
-
-                            },
-
-                            series: [{
-                                name: 'Contaminacion',
-                                data: (function () {
-                                        var data = [],
-                                            dat = Response.lstcontaminacionSM,
-                                            fec = Response.lstfechasm;
-                                        for (var i = 0; i < dat.length; i++) {
-                                            data.push({
-                                                name: fec[i],
-                                                y: dat[i]
-                                            });
-                                        }
-                                        return data;
-                                    }()),
-                                zIndex: 1,
-                                marker: {
-                                    fillColor: 'white',
-                                    lineWidth: 2,
-                                    lineColor: Highcharts.getOptions().colors[0]
-                                }
-                            }, {
-                                name: 'Range',
-                                data: RangCont,
-                                    type: 'arearange',
-                                    lineWidth: 0,                                    
-                                    color: Highcharts.getOptions().colors[0],
-                                    fillOpacity: 0.3,
-                                    zIndex: 0,
-                                    marker: {
-                                        enabled: false
-                                    }
-                                } ]
-                        });
-
-
-
+                           }
+                       }
 
 
 

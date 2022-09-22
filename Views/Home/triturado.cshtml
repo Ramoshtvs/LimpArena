@@ -91,10 +91,10 @@
 
                     if (Response != null) {
 
-                        $("#lblTiempo").html(Response.tiempoTriturado);
+                        $("#lblTiempo").html(Response.tiempoTriturado + ' Hrs');
                         $("#lblHora").html(Response.horaTriturado);
-                        $("#lblTamaño").html(Response.granoT);
-                        $("#lblContaminacion").html(Response.contaminacionT);
+                        $("#lblTamaño").html(Response.granoT + ' AFS');
+                        $("#lblContaminacion").html(Response.contaminacionT +' %');
 
                         if (rd.Fecha == fechaActual) {
                              Highcharts.chart('GrafTriturado', {
@@ -128,10 +128,10 @@
 
                                                                         series.addPoint([x, y]);
 
-                                                                        $("#lblTiempo").html(Responses.VarUltimoTriturado);
+                                                                        $("#lblTiempo").html(Responses.VarUltimoTriturado+ ' Hrs');
                                                                         $("#lblHora").html(Responses.horaTriturado);
-                                                                        $("#lblTamaño").html(Responses.granoT);
-                                                                        $("#lblContaminacion").html(Responses.contaminacionT);
+                                                                        $("#lblTamaño").html(Responses.granoT+' AFS');
+                                                                        $("#lblContaminacion").html(Responses.contaminacionT+' %');
 
 
                                                                     
@@ -180,8 +180,7 @@
                                 }
 
                                  },
-                                 tooltip: {
-                                headerFormat: 'ID: {point.x}<br>',
+                                 tooltip: {                                     
                                 pointFormat: 'Tiempo Ciclo: {point.y} Hrs',
                                 shared: true
                             },
